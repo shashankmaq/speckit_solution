@@ -221,7 +221,13 @@ Output structured markdown:
 
 ### 7. Hand Off to Migration Constitution Agent
 
-**AUTOMATICALLY** invoke `runSubagent` — use EXACTLY this format:
+**First check whether `runSubagent` is in your tool set.**
+
+**If it is NOT** (you were launched as a subagent — delegation is one level deep, so the tool is stripped):
+report the path of the saved analysis file plus a short summary and STOP. Your caller is the orchestrator and
+will continue the pipeline. Do not attempt the call below and do not run any later stage yourself.
+
+**If it IS available** (you were invoked directly by the user), invoke `runSubagent` — use EXACTLY this format:
 
 ```
 runSubagent(
@@ -233,7 +239,7 @@ runSubagent(
 
 **CRITICAL**: This MUST be a real `runSubagent()` tool call — not a description of what to do. The migration-constitution agent handles all 14 stages internally, calling 9 sub-agents via `runSubagent()`.
 
-**If runSubagent fails** (tool access issue), present the handoff button so the user can continue manually with the `migration-constitution` agent.
+**If runSubagent fails** (tool access issue), tell the user to run the `/migrate-tableau` prompt, which orchestrates the remaining stages from the top-level session.
 
 ## Important Notes
 
@@ -245,7 +251,7 @@ runSubagent(
 - Tableau brackets: `[field_name]`, internal calcs: `[Calculation_XXXX]`
 - Cross-datasource: `[datasource_id].[field_name]`
 - Parameters datasource named `'Parameters'` — list separately
-- The handoff to migration-constitution is AUTOMATIC — do not skip or ask
+- The handoff to migration-constitution is AUTOMATIC when `runSubagent` is available; when it is not, return control to the caller
 
 ## Anti-Hallucination Guardrails
 

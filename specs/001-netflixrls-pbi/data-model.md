@@ -1,168 +1,199 @@
-# Phase 1 Data Model — Netflix RLS Migration
+# Phase 1 Data Model — NetflixRLS
 
-**Feature**: `001-netflixrls-pbi` | **Date**: 2026-06-08
-**Source**: [star-schema-output.md](../../.specify/memory/NetflixRLS/star-schema-output.md), [dax-measures-output.md](../../.specify/memory/NetflixRLS/dax-measures-output.md)
+**Feature**: `001-netflixrls-pbi` | **Date**: 2026-08-03 | **Plan**: [plan.md](./plan.md)
+**Derived from**: `.specify/memory/NetflixRLS/star-schema-output.md` and `.specify/memory/NetflixRLS/dax-measures-output.md`
 
-Star schema: **6 tables**, **5 relationships**, **1 RLS role**, **2 measures**, **1 calculated column** (M-derived). Grain of `FactTitle` = one row per `show_id` (one Netflix title).
+8 tables · 7 relationships · 19 measures · 1 calculated column · 1 role. Natural keys only.
 
 ```
-                 ┌──────────────┐
-                 │  User_Access │  (RLS mapping — Username → Country)
-                 └──────┬───────┘
-                        │ R3 [Country]  (bi-dir: RLS propagation)
+                      Users (hidden)
+                        │  Entitled Country   R1: *→1  cross=BOTH  security=BOTH
                         ▼
-   DimGenre ──R5   ┌──────────┐   R2── DimCountry
-        │          │ FactTitle│        │
-        ▼          │ show_id  │        ▼
-  BridgeGenre ─R4─►│  (grain) │◄─R1─ BridgeCountry
-              (bi) └──────────┘ (bi)
+DimRating ──R7 1→*── Titles ──R3 *→1── BridgeTitleCountry ──R2 *→1── DimCountry
+                       │      (cross=BOTH, security=BOTH)   (oneDirection)
+DimDate ──R6 1→*───────┤
+                       └──R5 *→1── BridgeTitleGenre ──R4 *→1── DimGenre
+                          (cross=BOTH, security=one)    (oneDirection)
 ```
+
+8 nodes / 7 edges, connected and acyclic ⇒ **spanning tree**: exactly one path between any pair of tables, no ambiguity, no inactive relationships, no `USERELATIONSHIP`.
 
 ---
 
-## Tables
+## Fact: `Titles`
 
-### FactTitle (fact)
-- **Source**: `Data/Netflix RLS/netflix_titles.csv` (Import, loaded independently)
-- **Grain**: one row per `show_id`
-- **Key**: `show_id`
+- **Grain**: one row per title — 6,234 rows, keyed by `Show ID` (C-001, FR-007)
+- **Source**: `netflix_titles.csv`, read directly
+- **Home table for all 19 measures**
 
-| Column | Type | Role | Notes |
+| Column | Type | Source | Hidden | Key | Notes |
+|---|---|---|---|---|---|
+| `Show ID` | Int64 | `show_id` | Yes | `isKey` | Natural PK. `summarizeBy: none`. Hidden per FR-013 but referenced by `Distinct Titles`. |
+| `Type` | String | `type` | No | | `Movie` / `TV Show`. Slicer + `% of Titles`. |
+| `Title` | String | `title` | No | | Slicer; drives the four detail cards. |
+| `Director` | String | `director` | No | | ⚠ un-split multi-value list (R-1). |
+| `Cast` | String | `cast` | No | | ⚠ un-split multi-value list. |
+| `Country List` | String | `country` | **Yes** | | Raw multi-value string. Hidden by FR-048/C-006 so it can never be sliced. Name deliberately distinct from `DimCountry[Country]` and `Users[Entitled Country]` (FR-011). |
+| `Date Added` | Date (nullable) | `date_added` parsed | No | FK → `DimDate[Date]` | 11 nulls preserved (FR-005). |
+| `Release Year` | Int64 | `release_year` | No | | `summarizeBy: none` — a year label, not an additive value. Range 1925–2020. |
+| `Rating` | String | `rating` | **Yes** | FK → `DimRating[Rating]` | **Must be retained** — `Selected Title Rating` references it. |
+| `Duration` | String | `duration` | No | | Mixed units (`90 min` / `2 Seasons`); text, rendered verbatim. |
+| `Genres` | String | `listed_in` | **No** | | Raw multi-value string kept **visible** (FR-048/C-006) — the genre detail card renders it verbatim. Grouping must use `DimGenre`. |
+| `Description` | String | `description` | No | | Detail card. |
+
+---
+
+## Dimensions
+
+### `DimCountry`
+
+| Column | Type | Hidden | Key | Data category |
+|---|---|---|---|---|
+| `Country` | String | No | `isKey` | **Country/Region** (FR-047, C-007) |
+
+Distinct **union** of the split catalogue countries and the entitlement countries (FR-049) — reads both CSVs directly inside its own query. ~100–130 rows. Bound to the map visual (FR-038). No sub-national/state role carried over.
+
+### `DimGenre`
+
+| Column | Type | Hidden | Key |
 |---|---|---|---|
-| show_id | Int64 | Primary key / FK target for both bridges | Distinct-count grain |
-| type | String | Degenerate dim | Movie / TV Show — donut & area legend |
-| title | String | Attribute | Display |
-| director | String | Attribute | Display |
-| cast | String | Attribute | Display |
-| country | String | Attribute (display only) | Original multi-valued string — **not** used in any relationship |
-| Date Added | Date (nullable) | Attribute | Parsed in M from text `date_added` ("MMMM d, yyyy", en-US); null if unparseable |
-| Year Added | Int64 (nullable) | Attribute | `Date.Year([Date Added])` (M, null-safe) — area-trend category axis |
-| release_year | Int64 | Attribute | As-is |
-| rating | String | Degenerate dim | Ratings bar chart |
-| duration | String | Attribute | Duration listing |
-| description | String | Attribute | Description table (TV-Show-filtered visual) |
+| `Genre` | String | No | `isKey` |
 
-### DimCountry (dimension — conformed)
-- **Source**: union of split `netflix_titles.country` values AND `User_Access.Country` (one M query, `Distinct`)
-- **Key**: `Country` (**Data Category = Country** for the filled map)
+Distinct split of `listed_in`, ~42 rows. Axis of the Top-10 bar chart; scope column for `Genre Rank` and `% of Titles by Genre`.
 
-| Column | Type | Role |
-|---|---|---|
-| Country | String | Primary key (geo) |
+### `DimRating`
 
-### DimGenre (dimension)
-- **Source**: distinct trimmed `listed_in` split values from `netflix_titles.csv`
-- **Key**: `Genre`
+| Column | Type | Hidden | Key | Notes |
+|---|---|---|---|---|
+| `Rating` | String | No | `isKey` | 15 distinct values. Axis of the *Ratings* column chart. |
+| `Rating Category` | String | No | | **Calculated column** — the model's only one (FR-046, C-005, exception A-014). `SWITCH(TRUE(), …)` grouping into Kids / Teens / Adults / Unrated. |
 
-| Column | Type | Role |
-|---|---|---|
-| Genre | String | Primary key |
+### `DimDate` — marked as the model's date table (`dataCategory: Time`)
 
-### User_Access (dimension — security only)
-- **Source**: `Data/Netflix RLS/User_Access.csv` (Import, loaded independently)
-- **Key**: `Username` (RLS predicate column)
-- **Visibility**: hidden from report use — never placed in a visual or slicer
+| Column | Type | Hidden | Sort by |
+|---|---|---|---|
+| `Date` | Date | No | — (`isKey`) |
+| `Year` | Int64 | No | — |
+| `Quarter` | String | No | `Quarter Number` |
+| `Quarter Number` | Int64 | **Yes** | — |
+| `Month` | String | No | `Month Number` |
+| `Month Number` | Int64 | **Yes** | — |
+| `Year Month` | String | No | `Year Month Number` |
+| `Year Month Number` | Int64 | **Yes** | — |
+| `Day` | Int64 | No | — |
+| `Day of Week` | String | No | `Day of Week Number` |
+| `Day of Week Number` | Int64 | **Yes** | — |
+| `Week Number` | Int64 | No | — |
 
-| Column | Type | Role |
-|---|---|---|
-| Username | String | RLS predicate (`[Username] = USERPRINCIPALNAME()`) — email/UPN |
-| Country | String | FK → `DimCountry[Country]` (entitled country) |
+Hierarchy `Calendar`: `Year` → `Quarter` → `Month` → `Date`. Range computed from the observed min/max added-date, expanded to whole calendar years (FR-006, FR-010).
 
-### BridgeCountry (bridge — multi-valued country)
-- **Source**: `netflix_titles.csv` — split `country` by `,`, `Text.Trim`, one row per (`show_id`, `Country`), drop blanks
+---
 
-| Column | Type | Role |
-|---|---|---|
-| show_id | Int64 | FK → `FactTitle[show_id]` |
-| Country | String | FK → `DimCountry[Country]` |
+## Bridges (both tables entirely hidden — FR-013)
 
-### BridgeGenre (bridge — multi-valued genre)
-- **Source**: `netflix_titles.csv` — split `listed_in` by `,`, `Text.Trim`, one row per (`show_id`, `Genre`)
+### `BridgeTitleCountry`
 
-| Column | Type | Role |
-|---|---|---|
-| show_id | Int64 | FK → `FactTitle[show_id]` |
-| Genre | String | FK → `DimGenre[Genre]` |
+| Column | Type | Hidden | Notes |
+|---|---|---|---|
+| `Show ID` | Int64 | Yes | FK → `Titles[Show ID]` |
+| `Country` | String | Yes | FK → `DimCountry[Country]`. Referenced by `Distinct Countries`. |
+
+One row per title × country; composite uniqueness guaranteed by `Table.Distinct` (FR-009). **Titles with a blank `country` produce ZERO rows** — this is the mechanism that makes those 476 titles invisible under RLS (C-014, FR-026, A-002).
+
+### `BridgeTitleGenre`
+
+| Column | Type | Hidden | Notes |
+|---|---|---|---|
+| `Show ID` | Int64 | Yes | FK → `Titles[Show ID]` |
+| `Genre` | String | Yes | FK → `DimGenre[Genre]`. Referenced by `Distinct Genres`. |
+
+---
+
+## Security table: `Users` — **table hidden AND every column hidden** (FR-052)
+
+| Column | Type | Source | Hidden | Notes |
+|---|---|---|---|---|
+| `Username` | String | `Username` | Yes | Compared to `USERPRINCIPALNAME()`. DAX `=` is case-insensitive ⇒ FR-029 without `LOWER()`. |
+| `Entitled Country` | String | `Country` | Yes | Renamed to remove the case-only collision (FR-011, C-003). FK → `DimCountry[Country]`. |
+
+3 rows. Never an analytical dimension; never in a slicer. **No literal identity is ever emitted into any artefact** (FR-023, C-015, SC-008).
 
 ---
 
 ## Relationships
 
-| # | From (one) | To (many) | Key | Cardinality | Cross-filter | Active | Purpose |
-|---|---|---|---|---|---|---|---|
-| R1 | FactTitle[show_id] | BridgeCountry[show_id] | show_id | 1 : * | **Both** | Yes | Country bridge — lets a country filter reach the fact (map + RLS). |
-| R2 | DimCountry[Country] | BridgeCountry[Country] | Country | 1 : * | Single | Yes | Country dimension filters the bridge (map axis + RLS step). |
-| R3 | DimCountry[Country] | User_Access[Country] | Country | 1 : * | **Both** | Yes | **RLS propagation** — role filters User_Access; bidir flows up to DimCountry. §4a exception. |
-| R4 | FactTitle[show_id] | BridgeGenre[show_id] | show_id | 1 : * | **Both** | Yes | Genre bridge — genre filter reaches the fact (Genre / Top 10 Genre). |
-| R5 | DimGenre[Genre] | BridgeGenre[Genre] | Genre | 1 : * | Single | Yes | Genre dimension filters the bridge. |
+| # | From (many) | To (one) | `fromCardinality` → `toCardinality` | `crossFilteringBehavior` | `securityFilteringBehavior` | Active |
+|---|---|---|---|---|---|---|
+| R1 | `Users[Entitled Country]` | `DimCountry[Country]` | many → one | **`bothDirections`** | **`bothDirections`** ⚠ | Yes |
+| R2 | `BridgeTitleCountry[Country]` | `DimCountry[Country]` | many → one | `oneDirection` | `oneDirection` | Yes |
+| R3 | `BridgeTitleCountry[Show ID]` | `Titles[Show ID]` | many → one | **`bothDirections`** | **`bothDirections`** ⚠ | Yes |
+| R4 | `BridgeTitleGenre[Genre]` | `DimGenre[Genre]` | many → one | `oneDirection` | `oneDirection` | Yes |
+| R5 | `BridgeTitleGenre[Show ID]` | `Titles[Show ID]` | many → one | `bothDirections` | `oneDirection` | Yes |
+| R6 | `Titles[Date Added]` | `DimDate[Date]` | many → one | `oneDirection` | `oneDirection` | Yes |
+| R7 | `Titles[Rating]` | `DimRating[Rating]` | many → one | `oneDirection` | `oneDirection` | Yes |
 
-> Bidirectional only on R1, R4 (mandatory for many-to-many bridges) and R3 (mandatory for RLS). All other flows single-direction (constitution §4).
+> **`oneDirection` — never `single`.** The UI word `single` is invalid TMDL and causes `DataModelLoadFailed`.
 
----
+> ⚠ **R1 and R3 require `securityFilteringBehavior: bothDirections`.** Bi-directional *cross*-filtering alone does not carry an RLS filter. Omit it and RLS fails open — all 6,234 titles visible to everyone, with every validator still green.
 
-## RLS Propagation Path
-
-**Role**: `Dynamic Country Access` — `modelPermission: read`; `tablePermission User_Access`: `User_Access[Username] = USERPRINCIPALNAME()`.
-
-```
-USERPRINCIPALNAME()
-   │ filters
-   ▼
-User_Access (only signed-in user's rows → entitled Country values)
-   │ R3  (cross-filter BOTH → many→one)
-   ▼
-DimCountry (restricted to entitled countries)
-   │ R2  (single → DimCountry filters bridge)
-   ▼
-BridgeCountry (only entitled-country show_ids)
-   │ R1  (cross-filter BOTH → many→one)
-   ▼
-FactTitle (only titles available in the entitled country)
-   │ bridges + degenerate columns
-   ▼
-All visuals & measures
-```
-
-- **Deny by default (FR-013)**: unmapped user → zero `User_Access` rows → zero `DimCountry` → zero `BridgeCountry` → zero `FactTitle`.
-- **Multi-valued match (FR-007)**: a title tagged "United States, India" is reachable by both a US-entitled and an India-entitled user (one bridge row each), counted once via `DISTINCTCOUNT(show_id)`.
-- **Case-insensitivity (FR-012)**: default collation compares UPN to `Username` case-insensitively; fallback `LOWER(...) = LOWER(...)` if case-sensitive.
-- **Constraint**: the role filter is a row-level boolean and MUST NOT reference any measure (constitution §4a).
+**Why R2 and R4 stay one-directional**: making `BridgeTitleCountry → DimCountry` bi-directional would let a fact-side filter travel back into `Users`, and combined with R1's bi-directional security filtering that creates a filter loop through the secured chain (ambiguity warnings or silent over-filtering). Accepted consequence: a `Titles[Type]` slicer does not shrink the country list on the map; unmatched countries render blank rather than disappearing.
 
 ---
 
-## Measures
+## RLS role
 
-| Measure | DAX | Folder | Format |
+| Role | Kind | Table | Filter |
 |---|---|---|---|
-| Total Titles | `DISTINCTCOUNT(FactTitle[show_id])` | Core Metrics | `#,##0` |
-| % of Total Titles | `DIVIDE([Total Titles], CALCULATE([Total Titles], REMOVEFILTERS(FactTitle[type])))` | Core Metrics | `0.0%` |
+| `Country Access` | Dynamic | `Users` | `[Username] = USERPRINCIPALNAME()` |
 
-```dax
-Total Titles = DISTINCTCOUNT ( FactTitle[show_id] )
-```
+Propagation: `Users` —R1→ `DimCountry` —R2→ `BridgeTitleCountry` —R3→ `Titles` → (R5 → `BridgeTitleGenre` → `DimGenre`; R6 → `DimDate`; R7 → `DimRating`).
 
-```dax
-% of Total Titles =
-VAR _TypeTitles = [Total Titles]
-VAR _AllTypeTitles =
-    CALCULATE ( [Total Titles], REMOVEFILTERS ( FactTitle[type] ) )
-RETURN
-    DIVIDE ( _TypeTitles, _AllTypeTitles )
-```
+Because `Titles` is secured by propagation rather than a direct filter, **every measure is secured automatically** (FR-024).
 
 ---
 
-## Calculated Column (M-derived)
+## Measures (19) — all on `Titles`
 
-| Column | Table | Source | Notes |
-|---|---|---|---|
-| Year Added | FactTitle | M: `Date.Year([Date Added])` (null-safe) | Area-trend axis. DAX fallback `YEAR(FactTitle[Date Added])` only if M parse skipped. |
+| Display folder | Measure | Format |
+|---|---|---|
+| Title Counts | `Distinct Titles` | `#,##0` |
+| Title Counts | `Movie Titles` | `#,##0` |
+| Title Counts | `TV Show Titles` | `#,##0` |
+| Time | `Titles Added` | `#,##0` |
+| Catalogue Coverage | `Distinct Countries` | `#,##0` |
+| Catalogue Coverage | `Distinct Genres` | `#,##0` |
+| Catalogue Coverage | `Distinct Directors` | `#,##0` |
+| Release Year | `Average Release Year` | `0.0` |
+| Release Year | `Earliest Release Year` | `0` |
+| Release Year | `Latest Release Year` | `0` |
+| Distribution | `% of Titles` | `0.0%` |
+| Distribution | `% of Titles by Rating` | `0.0%` |
+| Distribution | `% of Titles by Genre` | `0.0%` |
+| Ranking | `Genre Rank` | `0` |
+| Ranking | `Distinct Titles (Top 10 Genres)` | `#,##0` |
+| Selected Title | `Selected Title Description` | _(text — none)_ |
+| Selected Title | `Selected Title Duration` | _(text — none)_ |
+| Selected Title | `Selected Title Genres` | _(text — none)_ |
+| Selected Title | `Selected Title Rating` | _(text — none)_ |
+
+Full DAX is owned by `.specify/memory/NetflixRLS/dax-measures-output.md` and must be transcribed verbatim. Every measure carries a `///` description.
+
+**RLS safety invariants** (already satisfied by the DAX contract, re-assert on any future edit):
+- No `ALL` / `ALLEXCEPT` / `REMOVEFILTERS` against `Users`, `DimCountry`, `BridgeTitleCountry` or `Titles`, nor any of their key columns.
+- Only **column-scoped** `ALLSELECTED` on non-security columns (`Titles[Type]`, `DimRating[Rating]`, `DimGenre[Genre]`).
+- No bare `ALLSELECTED()`.
+- No `% of Titles by Country` — it would need `ALLSELECTED(DimCountry[Country])`, which sits on the security chain.
 
 ---
 
-## Validation Rules (from requirements)
+## Validation rules encoded in this model
 
-- `Total Titles` author (no-role) view = distinct `show_id` count of the catalog (SC-006).
-- RLS "View as role" → 100% of visuals show only the entitled country's titles (SC-002); unmapped user → zero (SC-003).
-- Area trend ordered chronologically by `Year Added`; Top 10 Genre shows exactly 10 genres descending (SC-007).
-- Every relationship many-to-one; bidirectional only on R1/R3/R4; no circular paths (constitution §10).
+| Rule | Where enforced |
+|---|---|
+| Distinct title count = 6,234 unfiltered | `DISTINCTCOUNT(Titles[Show ID])` over a 1-row-per-title fact — a multi-country title still counts 1 (FR-021, SC-005) |
+| 11 blank added-dates survive | `try … otherwise null` in M (FR-005); excluded from the year chart by `Titles Added` (FR-034) |
+| 476 blank-country titles invisible under RLS | Zero bridge rows (C-014, FR-026) |
+| Multi-country title visible to every entitled viewer | Bridge row per country (FR-025, SC-007) |
+| Unmapped identity sees nothing, errors nothing | Empty `Users` cascades; `DIVIDE` returns blank not infinity (FR-027, FR-018) |
+| No identity leakage | No `member` entries, no literal in any expression (FR-023, SC-008) |
+| Every FK resolves | `DimCountry` is a union of both sources; `DimGenre`/`DimRating` derived from the columns they key; `DimDate` spans whole years (FR-015) |

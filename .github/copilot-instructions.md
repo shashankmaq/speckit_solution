@@ -8,15 +8,23 @@ at specs/001-netflixrls-pbi/plan.md
 
 ## Overview
 
-This workspace contains an automated end-to-end agentic pipeline that converts any Tableau workbook (.twb) into a complete Power BI project (.pbip) — including both the semantic model AND report visuals. When a user places a Tableau workbook in the workspace and runs the `tableau-analysis` agent, the full pipeline executes automatically.
+This workspace contains an automated end-to-end agentic pipeline that converts any Tableau workbook (.twb) into a complete Power BI project (.pbip) — including both the semantic model AND report visuals. When a user places a Tableau workbook in the workspace and runs the `/migrate-tableau` prompt, the full pipeline executes automatically.
 
 ## Pipeline Flow
 
 ```
-tableau-analysis → migration-constitution (orchestrates ALL remaining stages internally, including report generation)
+/migrate-tableau  (top-level prompt — has runSubagent)
+  └─ Stage 0:  tableau-analysis
+  └─ Stages 1–14: migration-constitution playbook → 9 stage agents + 2 validator gates
 ```
 
-The `migration-constitution` agent is a self-contained orchestrator that runs all 14 stages:
+**Why a prompt and not an agent:** VS Code allows only ONE level of delegation — `runSubagent` is stripped from
+the tool set of any agent that was itself launched via `runSubagent`. An orchestrator invoked as a subagent
+therefore cannot call its stage agents. `.github/prompts/migrate-tableau.prompt.md` loads the
+`migration-constitution` instructions as the *session* agent, so orchestration happens at the top level where
+`runSubagent` is available.
+
+The `migration-constitution` playbook covers all 14 stages:
 1. Read analysis context
 2. Generate/read constitution
 3. Create feature branch & speckit directory
@@ -32,14 +40,19 @@ The `migration-constitution` agent is a self-contained orchestrator that runs al
 13. **Generate report visuals** (via `report-visual-migration` subagent) — **read `plugins/pbip/skills/pbir-format/SKILL.md` for schema rules**
 14. Final end-to-end validation (model + report) — **run `validate_pbip.py` on project root, fix any errors**
 
-### Entry Point: `tableau-analysis`
+### Entry Point: `/migrate-tableau` prompt
+- Resolves the target workbook under `Data/` (asks the user only when several are present)
+- Calls `tableau-analysis` for Stage 0, then runs Stages 1–14
+- Runs in the top-level session so all nine stage agents are reachable via `runSubagent`
+
+### Stage 0: `tableau-analysis`
 - Discovers and parses `.twb` file from the `Data/` folder (organized in subfolders)
 - Extracts: datasources, columns, calculated fields, parameters, worksheets, dashboards
 - Detects source type (CSV, SQL Server, PostgreSQL, Excel, etc.)
-- Saves output to `.specify/memory/tableau-analysis-output.md`
-- Hands off to `migration-constitution`
+- Saves output to `.specify/memory/{WorkbookName}/tableau-analysis-output.md`
+- Returns control to the orchestrator
 
-### Orchestrator: `migration-constitution`
+### Orchestrator: `migration-constitution` (loaded by the prompt)
 - Runs ALL stages automatically without user interaction
 - **ALL designated agents MUST be called via `runSubagent()` — NEVER do an agent's work inline**
 - Creates speckit feature branch + `feature.json` for path resolution
@@ -124,9 +137,11 @@ Output/
 ## How to Use
 
 1. Place any `.twb` file (with its data files) in a subfolder under `Data/`
-2. Invoke the `tableau-analysis` agent (or ask "analyze the Tableau workbook")
+2. Run the `/migrate-tableau` prompt (optionally naming the workbook, e.g. `/migrate-tableau Netflix RLS`)
 3. The full pipeline runs automatically — no manual steps needed
 4. Result: a complete `.pbip` semantic model saved to `Output/{WorkbookName}/` folder, ready for Power BI Desktop
+
+> Do NOT invoke `migration-constitution` via `runSubagent` — as a subagent it cannot delegate and will stop.
 
 ## Speckit Integration
 
@@ -327,9 +342,21 @@ Every subagent call MUST use the `runSubagent` tool with these parameters:
 
 ### Entry Point Handoff
 
-| Agent | Calls | Purpose |
+| Caller | Calls | Purpose |
 |-------|-------|---------|
-| `tableau-analysis` | `migration-constitution` | Hand off after TWB analysis |
+| `/migrate-tableau` prompt | `tableau-analysis` | Stage 0 — parse the TWB |
+| `/migrate-tableau` prompt | the 9 stage agents | Stages 4–13 |
+
+### Delegation Depth Limit (why the entry point is a prompt)
+
+`runSubagent` is available ONLY in the top-level chat session. Any agent started via `runSubagent` gets a tool
+set with `runSubagent` removed, so it cannot delegate further. Consequences:
+
+- Orchestrators MUST be entered as prompt files (`.github/prompts/*.prompt.md`), never via `runSubagent`
+- Stage agents (`speckit.*`, `dax-measures`, `star-schema`, `pbip-generator`, `report-visual-migration`) do all
+  their own work inline — correct, since they are leaves
+- If an agent reports "`runSubagent` is not available", it was launched at the wrong level — re-enter through
+  the prompt rather than letting it work inline
 
 ### Rules
 

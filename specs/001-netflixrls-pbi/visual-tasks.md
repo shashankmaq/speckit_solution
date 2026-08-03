@@ -1,0 +1,24 @@
+# Tasks: NetflixRLS Visual Generation
+
+- [x] T1 — Parse `Data/Netflix RLS/Netfix Workbook rls.twb` with `[xml]`: mark classes, rows/cols shelves, encodings, filters, dashboard `<size>`, all `<zone>` elements
+- [x] T2 — Save the extraction to `.specify/memory/NetflixRLS/tableau-visuals-output.md` (hard gate before any visual is written)
+- [x] T3 — Save the dark-theme overrides to `.specify/memory/NetflixRLS/theme-overrides.md` (universal `report-constitution.md` untouched)
+- [x] T4 — Verify every intended binding against the emitted TMDL (19 measures, `Titles` columns, `Dim*` columns, relationships)
+- [x] T5 — Write `visual-spec.md`, `visual-plan.md`, `visual-tasks.md`
+- [x] T6 — Add `definition/version.json`
+- [x] T7 — Extend `definition/pages/Netflix/page.json` with the black page background (`objects.background` + `objects.outspace`)
+- [x] T8 — Generate the 2 slicer visuals (`slc_type`, `slc_title`) with the container title disabled
+- [x] T9 — Generate the 4 card visuals (`crd_rating`, `crd_duration`, `crd_genre`, `crd_desc`)
+- [x] T10 — Generate the header `textbox` (`txt_header`) replacing the missing `netflix.png`
+- [x] T11 — Generate the `filledMap` (`map_country`)
+- [x] T12 — Generate the `clusteredColumnChart` (`chr_ratings`)
+- [x] T13 — Generate the `donutChart` (`chr_typedist`) with the `% of Titles` tooltip
+- [x] T14 — Generate the `clusteredBarChart` (`chr_top10genre`) bound to `Distinct Titles (Top 10 Genres)` and sorted descending
+- [x] T15 — Generate the `stackedAreaChart` (`chr_years`) bound to `Titles Added` with `Titles[Type]` as the series
+- [x] T16 — Apply the theme to every visual: black background, `#aa0000` border, `#ffffff` titles/axis/labels, Aptos
+- [x] T17 — No navigation buttons (none exist in the TWB) — confirmed nothing invented
+- [x] T18 — Run `validate_pbip.py` on `Output/NetflixRLS` → exit 0, 0 errors, 0 warnings
+- [x] T19 — Parse every `*.json` / `*.pbir` under `NetflixRLS.Report` → 17 files, 0 invalid
+- [x] T20 — Pairwise overlap + canvas-bounds check on all 12 positions → NONE
+- [x] T21 — Longest full path = 167 characters (< 260)
+- [x] T22 — Deleted the temporary parse/generator artefacts

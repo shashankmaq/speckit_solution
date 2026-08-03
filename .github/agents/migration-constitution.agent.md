@@ -37,21 +37,21 @@ handoffs:
 $ARGUMENTS
 ```
 
-## Skill References
+## Invocation — Run From the Top-Level Session Only
 
-Before proceeding, read these skills for guidance:
-- `.github/skills/dax-measures/SKILL.md`
-- `.github/skills/star-schema/SKILL.md`
-- `.github/skills/pbip-generator/SKILL.md`
-- `.github/skills/report-visual-generation/SKILL.md`
-- `.github/skills/tableau-visual-extraction/SKILL.md`
+This orchestrator delegates every stage through `runSubagent`, and VS Code strips that tool from any agent that
+was itself launched via `runSubagent` (delegation is one level deep, to prevent recursive spawning). So this
+playbook is only runnable from the top-level chat session.
 
-### Plugin Validation References (read for validation steps):
-- `plugins/pbip/skills/tmdl/SKILL.md` — TMDL syntax, indentation, quoting, nesting
-- `plugins/pbip/skills/pbip/SKILL.md` — PBIP structure, encoding (UTF-8 no BOM), thick vs thin
-- `plugins/pbip/skills/pbir-format/SKILL.md` — PBIR JSON format, visual.json properties, schema patterns
-- `plugins/reports/skills/create-pbi-report/SKILL.md` — report creation best practices
-- `plugins/reports/skills/pbi-report-design/SKILL.md` — layout, spacing, visual hierarchy
+**Entry point: the `/migrate-tableau` prompt** (`.github/prompts/migrate-tableau.prompt.md`), which loads these
+instructions as the session agent and adds Stage 0 (the `tableau-analysis` call).
+
+If you find that `runSubagent` is not in your tool set, you were launched as a subagent. Stop immediately and
+tell the user to run `/migrate-tableau` instead — do NOT fall back to doing the stages inline.
+
+## Stage-Scoped Skill Loading
+
+Do not preload domain skills in this orchestrator. Each delegated agent must load the focused skills and references named in its own instructions or stage prompt. The orchestrator owns sequencing, context handoff, and validation gates only.
 
 ## Execution — Full Pipeline (ALL stages MANDATORY)
 

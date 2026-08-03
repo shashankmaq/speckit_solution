@@ -1,95 +1,100 @@
-# Quickstart — Building & Validating the Netflix RLS PBIP
+# Quickstart — Open and Verify the NetflixRLS Project
 
-**Feature**: `001-netflixrls-pbi` | **Date**: 2026-06-08
+**Feature**: `001-netflixrls-pbi` | **Plan**: [plan.md](./plan.md)
 
-A step-by-step walkthrough to build and validate the Power BI Project. Read the format skills before authoring files:
-- TMDL: `plugins/pbip/skills/tmdl/SKILL.md`
-- PBIR: `plugins/pbip/skills/pbir-format/SKILL.md`
-- PBIP structure: `plugins/pbip/skills/pbip/SKILL.md`
+## Prerequisites
 
-Target output: `Output/NetflixRLS/`. Source CSVs: `Data/Netflix RLS/netflix_titles.csv`, `Data/Netflix RLS/User_Access.csv`.
+- Power BI Desktop with **PBIP** and the **enhanced report format (PBIR)** preview options enabled.
+- Python 3.x on `PATH` (for `validate_pbip.py`).
+- The source CSVs still present at `Data/Netflix RLS/` — the model reads them by absolute path and will not refresh if they move (A-012).
 
----
+## 1. Validate before opening
 
-## Step 1 — Scaffold the PBIP project
-
-Create the folder structure from [plan.md](plan.md) (Project Structure). Author:
-- `NetflixRLS.pbip`, `.platform` files
-- `NetflixRLS.SemanticModel/definition.pbism`, `diagramLayout.json`
-- `NetflixRLS.Report/definition.pbir`, `definition/report.json`, `definition/version.json`
-
-`report.json` MUST be the minimal PBIR schema (no `modelExtensions`, `publicCustomVisuals`, `sections`, or `baseTheme`).
-
-## Step 2 — Author the semantic model (TMDL)
-
-1. `database.tmdl` — compatibility level.
-2. `model.tmdl` — culture `en-US`, `discourageImplicitMeasures`.
-3. `tables/*.tmdl` — six tables with M partitions (Step 3) and columns per [data-model.md](data-model.md). Add measures to `FactTitle`.
-4. `relationships.tmdl` — five relationships (R1–R5) with the cross-filter flags from data-model.
-5. `roles/Dynamic Country Access.tmdl` — RLS role (Step 4).
-
-## Step 3 — Power Query (M) partitions
-
-Each table reads its CSV independently. Pattern:
-
-```m
-let
-    Source = Csv.Document(
-        File.Contents("C:\Users\...\Data\Netflix RLS\netflix_titles.csv"),
-        [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]
-    ),
-    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true])
-    // ... per-table transforms
-in
-    Promoted
-```
-
-- **FactTitle**: cast types; parse `Date Added` (`try Date.From(DateTime.FromText([date_added], [Format="MMMM d, yyyy", Culture="en-US"])) otherwise null`); add `Year Added = Date.Year([Date Added])`.
-- **BridgeCountry**: keep `show_id`+`country`; `Text.Split([country], ",")`; expand; `Text.Trim`; remove blanks.
-- **BridgeGenre**: keep `show_id`+`listed_in`; split by `,`; expand; `Text.Trim`.
-- **DimCountry**: read both CSVs in one query; combine split countries + `User_Access.Country`; `Text.Trim`; `Distinct`.
-- **DimGenre**: distinct trimmed genres.
-- **User_Access**: `Username`, `Country`; `Text.Trim`.
-
-Rules: `QuoteStyle.Csv`; no cross-query references; no `Table.NestedJoin`; types after headers; null-safe parse.
-
-## Step 4 — RLS role
-
-```tmdl
-role 'Dynamic Country Access'
-	modelPermission: read
-
-	tablePermission User_Access = User_Access[Username] = USERPRINCIPALNAME()
-```
-
-Set `crossFilteringBehavior: bothDirections` on R3 (and R1 as the country bridge) so the entitlement reaches `FactTitle`. The filter is boolean — no measure references.
-
-## Step 5 — Report visuals
-
-Create page `NetflixDashboard` (`displayName "Netflix"`) and the nine visuals per [plan.md](plan.md) Phase F. Apply the dark theme (`#000000` bg, white text, red accents) via `themeCollection`. Each visual: title shown, 1px border, alt text; tables use `active: true` projections; 25px edges, 20px gaps, no overlap.
-
-## Step 6 — Validate
+Run from the workspace root, in order. Stop and fix on any failure.
 
 ```powershell
-# TMDL structural lint
 & "plugins\pbip\hooks\bin\tmdl-validate-windows-x64.exe" "Output\NetflixRLS\NetflixRLS.SemanticModel\definition"
-
-# Cross-cutting PBIP validator (0=clean, 1=warn, 2=error)
 python "plugins\pbip\skills\pbip\scripts\validate_pbip.py" "Output\NetflixRLS"
-
-# Report JSON syntax
-Get-ChildItem "Output\NetflixRLS\NetflixRLS.Report" -Recurse -Include "*.json","*.pbir" |
-  ForEach-Object { try { Get-Content $_.FullName -Raw | ConvertFrom-Json | Out-Null }
-                   catch { Write-Error "Invalid JSON: $($_.FullName) — $_" } }
 ```
 
-Fix any exit-code-2 errors before proceeding.
+`validate_pbip.py` exit codes: `0` clean · `1` warnings · `2` errors (**must fix**) · `3` usage error.
 
-## Step 7 — Acceptance verification (Power BI Desktop)
+## 2. Open
 
-1. Open `NetflixRLS.pbip` — confirm zero load errors (SC-001).
-2. Author view: `Total Titles` = distinct `show_id` count of catalog (SC-006).
-3. Modeling → **View as role** → "Dynamic Country Access" + a sample `User_Access.Username`:
-   - All visuals filter to only that user's country (SC-002).
-   - Try a username NOT in the table → all visuals show zero (SC-003, deny by default).
-4. Confirm dark theme (SC-005), chronological year axis, exactly 10 genres descending (SC-007), all nine visuals present (SC-004).
+Open `Output\NetflixRLS\NetflixRLS.pbip` in Power BI Desktop and refresh.
+
+Expected: both tables load with no errors and no failed transformation step (SC-001, SC-002).
+
+## 3. Verify the model
+
+| Check | Expected | Requirement |
+|---|---|---|
+| Table count | 8 | FR-007 |
+| Relationship count | 7, all active, none ambiguous | FR-015, SC-003 |
+| Measure count | 18 | — |
+| Calculated columns | exactly 1 — `DimRating[Rating Category]` | FR-051 |
+| Roles | exactly 1 — `Country Access` | FR-022 |
+| `Distinct Titles`, no filters | **6,234** | SC-005 |
+| Split by `Titles[Type]` | 2 categories summing to 6,234 | US1 AS-3 |
+| Split by `DimRating[Rating]` | 15 categories | US1 AS-4 |
+| `DimDate` | marked as date table, years sort chronologically | FR-010, US4 |
+| Blank added-dates | 11 rows blank, not dropped, not defaulted | FR-005 |
+
+## 4. Verify row-level security — **the critical check**
+
+**Modeling → View as → Other user**, entering each identity from `Data/Netflix RLS/User_Access.csv`.
+
+| Identity | Expected |
+|---|---|
+| The India-mapped identity | Only India titles; count well below 6,234 |
+| The United States-mapped identity | Only US titles |
+| The United Kingdom-mapped identity | Only UK titles |
+| Any identity **not** in the file | All visuals empty, no error |
+| No role applied | 6,234 |
+
+> ### If a secured identity returns 6,234, RLS has failed open.
+> The cause is a missing `securityFilteringBehavior: bothDirections` on relationship **R1** (`Users[Entitled Country]` → `DimCountry[Country]`) or **R3** (`BridgeTitleCountry[Show ID]` → `Titles[Show ID]`).
+>
+> Bi-directional *cross*-filtering alone does **not** carry an RLS filter across a relationship. The model loads cleanly, every measure evaluates, and both validators pass — this check is the only thing that catches it.
+
+Also confirm:
+- A title listing four countries (e.g. `"United States, India, South Korea, China"`) is visible to each of those four entitled viewers and counts as **1** for each (SC-007).
+- Titles with no recorded country are invisible to **every** secured viewer (FR-026). Per-user totals will not sum to 6,234 — that is expected (A-002).
+
+## 5. Verify the report page
+
+| Check | Expected | Requirement |
+|---|---|---|
+| Visual count | 12 (9 worksheet equivalents + 2 slicers + header) | SC-009 |
+| Type slicer | filters the four detail cards; **not** pre-set to "TV Show" | FR-032, A-006 |
+| Title slicer | filters the four detail cards | FR-032 |
+| Map selection | cross-filters every other visual | FR-035 |
+| Top 10 Genre | exactly 10 bars, descending by distinct title count | FR-033 |
+| Titles by year | no blank category on the axis | FR-034 |
+| Theme | black background, red accent, light text, 10pt base | FR-036 |
+| Header region | styled text substitute where `netflix.png` was | FR-037 |
+
+## 6. Final checks
+
+```powershell
+# Must return nothing — zero literal identities anywhere (SC-008)
+Select-String -Path "Output\NetflixRLS" -Pattern "@maq.com" -Recurse
+
+# Every JSON-family file must parse
+Get-ChildItem "Output\NetflixRLS" -Recurse -Include "*.json","*.pbir","*.pbip","*.pbism" | ForEach-Object { try { Get-Content $_.FullName -Raw | ConvertFrom-Json | Out-Null } catch { Write-Error "Invalid JSON: $($_.FullName)" } }
+```
+
+Also confirm `definition.pbism` version `4.2`, `definition.pbir` version `4.0`, `.pbip` carries `$schema` and declares **no** `dataset` artifact, and all files are UTF-8 without BOM.
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `DataModelLoadFailed` on open | `crossFilteringBehavior: single` in `relationships.tmdl` | Only `oneDirection` / `bothDirections` / `automatic` are valid TMDL |
+| Every viewer sees 6,234 under a role | Missing `securityFilteringBehavior: bothDirections` on R1 or R3 | Add it to both |
+| Refresh fails on `date_added` | Bare type change instead of the explicit en-US parse | Use `try Date.FromText(…, [Format="MMMM d, yyyy", Culture="en-US"]) otherwise null` |
+| Columns shifted on multi-country rows | `QuoteStyle` not set to `QuoteStyle.Csv` | Embedded commas inside quotes need `QuoteStyle.Csv` |
+| `duplicate member <name>` | An M expression name collides with a table name | Rename the expression (they share one namespace) |
+| A visual renders blank | Binding does not match the emitted TMDL name | Reconcile against `contracts/model-contract.md` |
+| `Property has not been defined…` on a visual | A `filters` (or other) property at the `visual.json` root | Only `$schema`, `name`, `position`, `visual`/`visualGroup` are allowed |
+| "Load was cancelled" during refresh | A query references another model query | Every table must read its CSV directly |

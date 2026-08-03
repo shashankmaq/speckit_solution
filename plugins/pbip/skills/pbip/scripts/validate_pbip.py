@@ -7,6 +7,10 @@ the `.pbip` root file, `.platform` files, `.SemanticModel` folder format
 the silent-ignore page name regex rule. Deep `.Report` structure + JSON
 schema compliance is delegated to `pbir validate` if it is on PATH.
 
+Also lints TMDL lines for hazards the `tmdl-validate` binary does not report
+but that abort the model load in Power BI Desktop: `//` comment lines,
+invalid enum tokens, and the `description:` property.
+
 Usage:
     validate_pbip.py <path>          text output
     validate_pbip.py <path> --json   machine-readable output
@@ -52,6 +56,22 @@ from pathlib import Path
 
 GUID_RE = re.compile(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
 PAGE_NAME_RE = re.compile(r"^[\w-]+$")
+
+# A '//' line that is not a '///' description line.
+TMDL_COMMENT_RE = re.compile(r"^//(?!/)")
+
+# TMDL enum properties whose values PBI Desktop rejects outright. Notably the
+# UI word 'single' is NOT a valid CrossFilteringBehavior token.
+TMDL_ENUM_PROPERTIES: dict[str, set[str]] = {
+    "crossFilteringBehavior": {"automatic", "oneDirection", "bothDirections"},
+    "securityFilteringBehavior": {"none", "oneDirection", "bothDirections"},
+    "fromCardinality": {"none", "one", "many"},
+    "toCardinality": {"none", "one", "many"},
+    "modelPermission": {"none", "read", "readRefresh", "refresh", "administrator"},
+    "isActive": {"true", "false"},
+    "isHidden": {"true", "false"},
+    "isKey": {"true", "false"},
+}
 
 DEFAULT_GITIGNORE = """**/.pbi/localSettings.json
 **/.pbi/cache.abf
@@ -460,6 +480,65 @@ def check_tmdl_presence(def_dir: Path, result: Result) -> None:
                        f"definition/{optional} absent (optional)", def_dir / optional)
 
     check_m_table_name_collisions(def_dir, result)
+    check_tmdl_line_hazards(def_dir, result)
+
+
+def check_tmdl_line_hazards(def_dir: Path, result: Result) -> None:
+    """Line-level TMDL hazards that abort the model load in PBI Desktop but
+    are NOT reported by the `tmdl-validate` binary.
+
+    Covers:
+      - `//` comment lines            -> InvalidLineType / 'Unexpected line
+                                         type: Other!' -> DataModelLoadFailed
+      - invalid enum tokens           -> InvalidValueFormat (e.g. the Power BI
+                                         UI word 'single' is not a TMDL
+                                         CrossFilteringBehavior)
+      - `description:` property       -> UnknownKeyword (use a `///` line)
+      - UTF-8 BOM
+    """
+    for tmdl in sorted(def_dir.rglob("*.tmdl")):
+        try:
+            raw = tmdl.read_bytes()
+        except OSError as e:
+            result.add(ERROR, "tmdl_read", f"{tmdl.name}: {e}", tmdl)
+            continue
+
+        if raw.startswith(b"\xef\xbb\xbf"):
+            result.add(WARN, "tmdl_bom",
+                       f"{tmdl.name} has a UTF-8 BOM; write TMDL as UTF-8 without BOM", tmdl)
+            raw = raw[3:]
+
+        for n, line in enumerate(raw.decode("utf-8", errors="replace").splitlines(), start=1):
+            stripped = line.strip()
+
+            # Only column 0 — indented '//' is legal M/DAX inside an expression block.
+            if TMDL_COMMENT_RE.match(line):
+                result.add(
+                    ERROR, "tmdl_illegal_comment",
+                    (f"{tmdl.name}:{n} '//' comment line. TMDL has no line-comment "
+                     f"syntax — the parser reports 'Unexpected line type: Other!' and "
+                     f"PBI Desktop fails with DataModelLoadFailed. Only '///' "
+                     f"(description, immediately preceding a declaration) is allowed. "
+                     f"Line: {stripped[:70]}"),
+                    tmdl)
+                continue
+
+            if stripped.startswith("description:"):
+                result.add(
+                    ERROR, "tmdl_description_property",
+                    (f"{tmdl.name}:{n} 'description:' is not a TMDL property "
+                     f"(UnknownKeyword). Use a '///' line before the declaration."),
+                    tmdl)
+                continue
+
+            prop, _, value = stripped.partition(":")
+            allowed = TMDL_ENUM_PROPERTIES.get(prop.strip())
+            if allowed and value.strip() and value.strip() not in allowed:
+                result.add(
+                    ERROR, "tmdl_invalid_enum",
+                    (f"{tmdl.name}:{n} '{prop.strip()}: {value.strip()}' is not a valid "
+                     f"TMDL value. Allowed: {', '.join(sorted(allowed))}."),
+                    tmdl)
 
 
 #region TMDL declaration parsing
