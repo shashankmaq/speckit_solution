@@ -6,13 +6,25 @@ Extract visualization metadata from a Tableau workbook (.twb) — chart types, f
 
 ## When to Use
 
-- After `tableau-analysis` has run and the analysis output exists
+- After `tableau-analysis` has run and `tableau-extraction.json` exists
 - When migrating Tableau visuals/dashboards to the Power BI report layer
 - Before generating Power BI report visuals
 
-## ⚠️ Parse the Actual TWB XML
+## ✅ Read the Deterministic JSON First (do NOT re-parse XML)
 
-The high-level analysis output only has datasource metadata. Mark types, shelves, encodings, and zone positions MUST come from parsing the real `.twb` XML. Locate it via `file_search` with `Data/**/*.twb`.
+The deterministic extractor (`.github/skills/tableau-analysis/scripts/tableau_extractor.py`) already captured
+**all** visual metadata into `.specify/memory/{WorkbookName}/tableau-extraction.json`:
+
+- `worksheets[]` — `mark_type`, `inferred_powerbi_visual`, `rows[]`/`cols[]` pills, `encodings`
+  (color/size/text/wedge_size/lod/detail/geometry…), `filters[]`, `top_n`, `dual_axis`, `reference_lines[]`,
+  `hierarchy[]`, `title`, `style`, `color_encoding`.
+- `dashboards[]` — `size`, per-zone `visuals[]`/`filters[]`/`parameter_controls[]`/`images[]`/`text_zones[]`
+  with raw **and** pixel (`*_px`) positions, and `buttons[]` with resolved `target_dashboard`/`target_zone_ids`.
+
+**Read the JSON — do not hand-parse the `.twb`.** The focused skills below are the reference for *interpreting*
+these JSON fields (chart-type rules, encoding meaning, format translation) and for the rare case where you must
+confirm a raw attribute the JSON does not carry. Only if `tableau-extraction.json` is missing should you re-run
+the extractor (see `tableau-analysis/SKILL.md`).
 
 ## What to Read for Each Task (focused skills)
 
@@ -25,19 +37,20 @@ The high-level analysis output only has datasource metadata. Mark types, shelves
 
 ## Extraction Order
 
-1. Locate the `.twb` and read the analysis output for worksheet/dashboard names.
-2. For each worksheet: extract encodings -> `tableau-worksheet-extraction`; resolve chart type -> `tableau-mark-mapping`.
-3. For each dashboard: extract layout + buttons -> `tableau-dashboard-extraction`.
-4. Capture formats + write `.specify/memory/{WorkbookName}/tableau-visuals-output.md` -> `tableau-format-translation`.
+1. Load `.specify/memory/{WorkbookName}/tableau-extraction.json` (also present: `tableau-visuals-output.md`).
+2. For each `worksheets[]` entry: use `inferred_powerbi_visual` (interpret via `tableau-mark-mapping` if you
+   need to justify/adjust it) and the `encodings`/`rows`/`cols` fields -> `tableau-worksheet-extraction`.
+3. For each `dashboards[]` entry: use `size`, zone `*_px` positions, and `buttons[]` -> `tableau-dashboard-extraction`.
+4. Translate `field_formatting[]`/per-field `powerbi_format` -> `tableau-format-translation`.
 
 ## Completeness Gate (before handoff)
 
-- Mark type for EVERY worksheet; color/size/text encodings where present; rows/cols captured.
-- Dashboard zone positions for ALL dashboards; navigation buttons for ALL dashboards with `<button>`.
-- Dual-axis/combo and reference/trend lines recorded per worksheet (value or `None`).
-- Output file exists with the Visual Inventory table.
+- Every `worksheets[]` entry has a `mark_type` + `inferred_powerbi_visual` (the extractor guarantees this).
+- Dashboard zone positions (`*_px`) present for ALL `dashboards[]`; `buttons[]` present where the workbook had them.
+- Dual-axis/combo and reference/trend lines are read from `dual_axis` / `reference_lines[]` (value or empty).
 
-If any worksheet is missing mark/encoding data, **re-parse the TWB** before proceeding.
+If `tableau-extraction.json` is missing or a `worksheets[]` entry is empty, **re-run the deterministic
+extractor** (`tableau-analysis/SKILL.md`) before proceeding — do not hand-parse the XML.
 
 ## Anti-Hallucination
 

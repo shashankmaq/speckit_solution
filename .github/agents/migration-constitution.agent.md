@@ -90,7 +90,8 @@ Do not preload domain skills in this orchestrator. Each delegated agent must loa
 
 ### Stage 1: Read Analysis Context
 
-Read `.specify/memory/{WorkbookName}/tableau-analysis-output.md` to understand:
+Read `.specify/memory/{WorkbookName}/tableau-extraction.json` — the deterministic source of truth produced by
+Stage 0 (the rendered `tableau-analysis-output.md` is also available for a quick human-readable view). Understand:
 - Datasources (connection types, file paths, tables)
 - Columns (names, datatypes, roles, semantic roles)
 - Calculated fields (formulas)

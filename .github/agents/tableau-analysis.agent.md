@@ -1,13 +1,13 @@
 ---
-description: Analyze any Tableau workbook (.twb/.twbx) file in the workspace to extract metadata. After analysis, hands off to migration-constitution agent which runs the full end-to-end pipeline for Power BI project generation (semantic model + report visuals).
+description: Deterministically extract Tableau workbook (.twb/.twbx) metadata by running a Python extractor script that emits a comprehensive JSON (plus backward-compatible markdown). After extraction, hands off to migration-constitution agent which runs the full end-to-end pipeline for Power BI project generation (semantic model + report visuals).
 
 handoffs:
   - label: Generate Full Power BI Project (Model + Report)
     agent: migration-constitution
-    prompt: "Run the full end-to-end migration pipeline: read universal constitution → feature branch → specify → clarify → DAX → star-schema → plan → tasks → PBIP generation → report visual migration. The constitution at .specify/memory/constitution.md is a shared rulebook — read it, do NOT regenerate it. The report constitution at .specify/memory/report-constitution.md is also universal — read it, do NOT regenerate it. Read workbook analysis from .specify/memory/{WorkbookName}/tableau-analysis-output.md. Generate BOTH semantic model AND report visuals."
+    prompt: "Run the full end-to-end migration pipeline: read universal constitution → feature branch → specify → clarify → DAX → star-schema → plan → tasks → PBIP generation → report visual migration. The constitution at .specify/memory/constitution.md is a shared rulebook — read it, do NOT regenerate it. The report constitution at .specify/memory/report-constitution.md is also universal — read it, do NOT regenerate it. Read the deterministic extraction JSON from .specify/memory/{WorkbookName}/tableau-extraction.json (markdown summaries tableau-analysis-output.md and tableau-visuals-output.md are also present). Generate BOTH semantic model AND report visuals."
   - label: Migrate Visuals Only (if model already exists)
     agent: report-visual-migration
-    prompt: "Run the full visual migration pipeline: extract visuals → read universal report constitution → specify → clarify → plan → tasks → generate report visuals. Read analysis from .specify/memory/{WorkbookName}/tableau-analysis-output.md. Read universal report rules from .specify/memory/report-constitution.md (do NOT overwrite)."
+    prompt: "Run the full visual migration pipeline: read the deterministic extraction JSON → read universal report constitution → specify → clarify → plan → tasks → generate report visuals. Read extraction from .specify/memory/{WorkbookName}/tableau-extraction.json (and tableau-visuals-output.md). Read universal report rules from .specify/memory/report-constitution.md (do NOT overwrite)."
 ---
 
 ## User Input
@@ -18,245 +18,124 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
-## Skill Reference
+## Overview — Extraction Is Deterministic (No Manual XML Parsing)
 
-Read `.github/skills/tableau-analysis/SKILL.md` before proceeding.
+Extraction is performed by a **deterministic Python script**, NOT by hand-parsing the XML. Do not read the
+`.twb` XML yourself and do not "infer" metadata with the model. Your job is to run the script, verify its
+output, present a short summary, and hand off.
+
+The script `.github/skills/tableau-analysis/scripts/tableau_extractor.py` parses any `.twb`/`.twbx` and writes,
+into `.specify/memory/{WorkbookName}/`:
+
+| File | Role |
+|------|------|
+| `tableau-extraction.json` | **Source of truth** — the complete structured extraction every downstream agent consumes |
+| `tableau-analysis-output.md` | Human-readable analysis (auto-rendered from the JSON) — kept for backward compatibility |
+| `tableau-visuals-output.md` | Human-readable visual inventory (auto-rendered from the JSON) — kept for backward compatibility |
+
+The JSON covers EVERY documented scenario: workbook info, parameters (any/range/list with members & aliases),
+datasources + connection types + M-query hints, physical tables + columns, semantic fields (dimensions,
+measures, calculated fields with verbatim formulas + table-calc), column instances, worksheets (mark type +
+inferred Power BI visual, rows/cols pills, encodings, filters, Top-N, dual-axis/combo, reference lines,
+hierarchy, style, referenced fields/calcs), dashboards (size, zone positions in raw + pixel coordinates,
+filters, parameter controls, images, text zones, navigation/toggle buttons with resolved targets), windows,
+relationships (both legacy joins and modern object-model), sets, groups, bins, data blending, field formatting
+(with Power BI formatString translation), and row-level security (Dynamic / Static / Group-based classification
+with suggested roles).
 
 ## Steps
 
-### 1. Locate Tableau Files
+### 1. Locate the Tableau workbook
 
-- Use `file_search` with `Data/**/*.twb` and `Data/**/*.twbx` to find workbooks in the Data folder
-- If user specified a file, use that directly
-- The `Data/` folder contains subfolders per workbook (e.g., `Data/Netflix/`, `Data/Loan/`, `Data/Q3 Buyer/`)
-- Each subfolder has the `.twb` file and its associated data files (CSV, Excel, etc.)
+- Use `file_search` with `Data/**/*.twb` and `Data/**/*.twbx` to find workbooks under the `Data/` folder.
+- If the user named a specific workbook (via `$ARGUMENTS`), select that one.
+- If several exist and the user did not specify, ask which one (or process the single match automatically).
+- Determine `{WorkbookName}` — the PascalCase output folder name used across the pipeline (e.g.
+  `Data/Netflix RLS/` → `NetflixRLS`, `Data/Sales and Customer/` → `SalesCustomerDashboards`). When unsure, use
+  the `suggested_output_folder_name` the script reports in its JSON.
 
-### 2. Parse the Workbook (XML)
+### 2. Run the deterministic extractor
 
-Read the `.twb` in sections and extract:
-- First ~100 lines → workbook version, platform, build
-- `<datasource name='Parameters'>` → parameters (name, datatype, range, default)
-- Each `<datasource>` → caption, connection type, source files, tables
-- `<column>` elements → caption, name, datatype, role (dimension/measure), type, semantic-role
-- `<column>` with nested `<calculation>` → calculated fields (caption, formula, table-calc settings)
-- `<worksheet name='...'>` → worksheet names + **visual metadata** (see Step 2b)
-- `<dashboard name='...'>` → dashboard names + **zone layout** (see Step 2c)
-- `<relation type='join'>` or `<relation type='collection'>` → relationships/joins
+Run the script in a terminal (quote paths — they contain spaces):
 
-### 2b. Extract Visual Metadata Per Worksheet (MANDATORY)
-
-**CRITICAL**: For each `<worksheet>`, extract the visual encoding details from `<table><panes><pane>`:
-
-1. **Mark Type**: `<mark class='...'>` → Bar, Line, Pie, Square, Area, Circle, Text, Map, Automatic
-2. **Field Shelves**:
-   - `<rows>` → fields on Y-axis (vertical)
-   - `<cols>` → fields on X-axis (horizontal)
-3. **Encodings** from `<pane><encodings>`:
-   - `<color column='...'>` → color/legend field
-   - `<size column='...'>` → size field
-   - `<text column='...'>` → data label field
-   - `<wedge-size column='...'>` → pie slice measure
-4. **Hierarchy detection**: If `<rows>` contains `/` separators (e.g., `region / subregion / state`), note the drill path
-
-Output this as a **Worksheet Visual Details** table in the analysis:
-```markdown
-## Worksheet Visual Details
-| Worksheet | Mark Type | Rows (Y-axis) | Cols (X-axis) | Color | Size | Text/Label |
-|-----------|-----------|---------------|---------------|-------|------|------------|
-| {name} | {mark_class} | {fields} | {fields} | {field} | {field} | {field} |
+```powershell
+python ".github/skills/tableau-analysis/scripts/tableau_extractor.py" "<full path to the .twb/.twbx>" --name "{WorkbookName}"
 ```
 
-**Automatic mark inference**: When `mark class="Automatic"`, infer:
-- Color + Size on same measure + text on dimension → Treemap
-- Date on cols + measure on rows → Line chart
-- Single measure, no dimensions → Card/KPI
-- Dimensions on rows only + measures on text → Table
-- Dimension on one axis + measure on other → Bar/Column chart
+- `--name {WorkbookName}` sets the output subfolder under `.specify/memory/`. Omit it to accept the
+  script's PascalCase default derived from the `Data/` subfolder.
+- The script requires only the Python 3.8+ standard library — no packages to install.
+- It prints a one-line summary (datasource/worksheet/dashboard/parameter/calc counts + RLS flag) and the paths
+  it wrote.
 
-### 2c. Extract Dashboard Zone Layout (MANDATORY)
+**If the script exits non-zero or prints an error**, report the exact error to the user and STOP. Do NOT fall
+back to manual XML parsing.
 
-**CRITICAL**: For each `<dashboard>`, extract position data from `<zones><zone>`:
+### 3. Verify the output
 
-1. **Dashboard size**: `<size maxwidth='...' maxheight='...'>`
-2. **Zone positions**: For each zone with `type='viz'`, `type='filter'`, or `type='paramctrl'`:
-   - `name` → which worksheet is embedded
-   - `x`, `y`, `w`, `h` → pixel position and size
-   - `type` → viz (chart), filter (slicer), paramctrl (parameter)
-3. **Navigation buttons**: For each zone with `type-v2='dashboard-object'` containing a `<button>` child:
-   - `action` attribute → `tabdoc:goto-sheet window-id="..."` means page navigation
-   - `<toggle-action>` child → show/hide toggle (e.g., filter panel visibility)
-   - `<button-visual-state>` → tooltip text, image path
-   - `x`, `y`, `w`, `h` → button position and size
-   - Parent container `friendly-name` (e.g., "Horizontal Cont. (Button)") → button group layout
+- Confirm `.specify/memory/{WorkbookName}/tableau-extraction.json` exists and parses as JSON.
+- Read the JSON `summary` block and the `warnings` array. If `warnings` is non-empty, surface them.
+- Sanity-check that counts are plausible (at least one datasource; worksheets/dashboards present when expected).
 
-Output as:
-```markdown
-## Dashboard Layout: {dashboard_name}
-- **Size**: {width} × {height} px
+### 4. Present a concise summary
 
-| Zone | Type | Worksheet/Filter | x | y | w | h |
-|------|------|-----------------|---|---|---|---|
-| 1 | viz | {worksheet_name} | {x} | {y} | {w} | {h} |
-| 2 | filter | {filter_field} | {x} | {y} | {w} | {h} |
+Summarize from the JSON (do NOT re-derive from XML). Report:
+- Workbook name, version, platform
+- Datasource count + connection types
+- Parameter / dimension / measure / calculated-field counts
+- Worksheet + dashboard counts
+- Whether RLS was detected (and its type)
+- The path to `tableau-extraction.json`
 
-### Navigation Buttons
-| Button | Action | Tooltip | Target | x | y | w | h |
-|--------|--------|---------|--------|---|---|---|---|
-| 1 | goto-sheet | {tooltip_text} | {target_dashboard_name} | {x} | {y} | {w} | {h} |
-| 2 | toggle | {tooltip_text} | show/hide {target_zones} | {x} | {y} | {w} | {h} |
-```
+Keep it short — the full detail lives in the JSON and rendered markdown.
 
-**Button Action Types**:
-- `tabdoc:goto-sheet window-id="..."` → Page navigation button (maps to Power BI page navigation action)
-- `<toggle-action>tabdoc:toggle-button-click-action...</toggle-action>` → Toggle visibility (maps to Power BI bookmark + button)
-- Resolve `window-id` to the target dashboard name by matching against `<window class='dashboard' name='...'>`
-
-This data is **essential** for the report-visual-migration agent to generate correctly-typed and correctly-positioned visuals.
-
-### 2d. Extract Sets, Groups, Bins, Blending & Formats (MANDATORY)
-
-These constructs drive downstream DAX and MUST be captured (write `None` when absent — never fabricate):
-
-1. **Sets** — `<group name='[... Set]'>` with `<groupfilter>` children. Record set name, source field, type (Fixed list vs Computed/top-N), and members/condition.
-2. **Groups** — `<group name='[... (group)]'>` or `<calculation class='categorical-bin'>`. Record group field, source dimension, and each alias → member values.
-3. **Bins** — `<column>` with `<calculation class='bin' decimal-bin-size='...'>`. Record bin field, source field, bin size.
-4. **Data Blending** — Count real `<datasource>` elements (excluding `Parameters`). If more than one and worksheets reference fields across them (or `<datasource-dependencies>` exist), record primary + secondary datasources and the linking field(s). If only one, write `Single datasource — no blending`.
-5. **Field Formatting** — Capture each field's display format string verbatim (e.g. `$#,##0`, `0.0%`, `mmmm yyyy`, `[h]:mm:ss`). Write `Default` when none.
-
-Output as:
-```markdown
-## Sets
-| Set Name | Source Field | Type | Members / Condition |
-|----------|--------------|------|---------------------|
-
-## Groups
-| Group Field | Source Dimension | Alias | Member Values |
-|-------------|------------------|-------|---------------|
-
-## Bins
-| Bin Field | Source Field | Bin Size |
-|-----------|--------------|----------|
-
-## Data Blending
-| Primary Datasource | Secondary Datasource | Linking Field(s) |
-|--------------------|----------------------|------------------|
-
-## Field Formatting
-| Field | Tableau Format String | Kind |
-|-------|-----------------------|------|
-
-## Row-Level Security (RLS)
-| Detected | Type | Secured Table.Column | Mapping Table.User Column |
-|----------|------|----------------------|---------------------------|
-
-| Suggested Role | RLS Type | Secured Table | Entitlement Column | Mapping Table | User Column | Power BI Filter (DAX intent) |
-|----------------|----------|---------------|--------------------|---------------|-------------|------------------------------|
-```
-
-### 2e. Detect Row-Level Security (MANDATORY)
-
-Inspect calculated-field formulas, worksheet/data-source filters, and datasource relations for RLS signals:
-- User functions: `USERNAME()`, `FULLNAME()`, `ISMEMBEROF('Group')`, `ISUSERNAME(...)`, `ISFULLNAME(...)`
-- User filters comparing a user function to a column (`[Username] = USERNAME()`)
-- A user-mapping/entitlement table (e.g. `User_Access` with `Username` + `Country`) joined/blended to a secured table
-- Hardcoded per-user predicates (`USERNAME() = "x" AND [Region] = "India"`)
-
-Classify each signal as **Dynamic** (mapping table → filter by current user), **Static** (one role per value), or **Group-based** (Entra/AD group). Record `Detected: No` when no signal exists — never invent roles. This drives the `roles/` generation in the PBIP stage; see `.github/skills/tableau-analysis/SKILL.md` §2.14.
-
-### 3. Decode XML Entities
-
-- `&quot;` → `"`, `&gt;` → `>`, `&lt;` → `<`, `&amp;` → `&`, `&#13;&#10;` → newline
-
-### 4. Identify Data Source Type
-
-Determine the connection type for each datasource:
-- `class='textclean'` or `class='textscan'` → CSV file
-- `class='excel-direct'` or `class='excel'` → Excel file
-- `class='sqlserver'` → SQL Server
-- `class='postgres'` → PostgreSQL
-- `class='mysql'` → MySQL
-- `class='oracle'` → Oracle
-- `class='snowflake'` → Snowflake
-- `class='databricks'` → Databricks
-- `class='bigquery'` → BigQuery
-
-Record the connection class, server, database, schema, and table names for each datasource.
-
-### 5. Save Analysis Output
-
-**MANDATORY**: Save extracted metadata to `.specify/memory/{WorkbookName}/tableau-analysis-output.md` in structured markdown.
-
-> **Memory Scoping**: `{WorkbookName}` is the PascalCase output folder name (e.g., `SalesCustomerDashboards`, `NetflixAnalysis`). Create the directory `.specify/memory/{WorkbookName}/` if it does not exist before saving.
-
-Include a **Data Source Summary** section:
-```markdown
-## Data Source Summary
-| Datasource | Connection Type | Source Details |
-|-----------|----------------|----------------|
-| {name} | CSV / SQL Server / etc. | file path or server/database/table |
-```
-
-### 6. Present Results
-
-Output structured markdown:
-```
-# Tableau Workbook Analysis: {filename}
-## Workbook Info
-## Parameters
-## Data Source Summary
-## Datasources
-### {name} — Dimensions | Measures
-## Calculated Fields
-## Worksheet Visual Details    ← NEW (mark types, field shelves, encodings)
-## Dashboard Layout             ← NEW (zone positions, sizes)
-## Navigation Buttons           ← NEW (goto-sheet, toggle buttons per dashboard)
-## Sets / Groups / Bins         ← NEW (None when absent)
-## Data Blending                ← NEW (Single datasource when one source)
-## Field Formatting             ← NEW (Tableau format strings)
-## Row-Level Security (RLS)     ← NEW (Detected: No when absent)
-## Worksheets
-## Dashboards
-## Relationships
-```
-
-### 7. Hand Off to Migration Constitution Agent
+### 5. Hand Off to Migration Constitution Agent
 
 **First check whether `runSubagent` is in your tool set.**
 
 **If it is NOT** (you were launched as a subagent — delegation is one level deep, so the tool is stripped):
-report the path of the saved analysis file plus a short summary and STOP. Your caller is the orchestrator and
-will continue the pipeline. Do not attempt the call below and do not run any later stage yourself.
+report the path of `.specify/memory/{WorkbookName}/tableau-extraction.json` plus a short summary and STOP. Your
+caller is the orchestrator and will continue the pipeline. Do not run any later stage yourself.
 
 **If it IS available** (you were invoked directly by the user), invoke `runSubagent` — use EXACTLY this format:
 
 ```
 runSubagent(
   agentName: "migration-constitution",
-  prompt: "Run the full end-to-end migration pipeline using the analysis saved at .specify/memory/{WorkbookName}/tableau-analysis-output.md. Execute ALL 14 stages: constitution → feature branch → specify → clarify → DAX measures → star schema → plan → tasks → PBIP generation → validate → analyze → report visual migration → final validate. This is an end-to-end pipeline — generate BOTH the semantic model AND the report visuals automatically. MANDATORY: You MUST call the `runSubagent` tool 9 times — once for each designated agent (speckit.specify, speckit.clarify, dax-measures, star-schema, speckit.plan, speckit.tasks, pbip-generator, speckit.analyze, report-visual-migration). Do NOT write specs, DAX, schemas, plans, tasks, TMDL, or reports yourself — delegate ALL generation work to the designated agents via runSubagent tool calls. Memory files are scoped: workbook-specific artifacts in .specify/memory/{WorkbookName}/, universal constitutions (constitution.md, report-constitution.md) at .specify/memory/ root.",
+  prompt: "Run the full end-to-end migration pipeline using the deterministic extraction saved at .specify/memory/{WorkbookName}/tableau-extraction.json (rendered summaries: tableau-analysis-output.md, tableau-visuals-output.md). Execute ALL 14 stages: constitution → feature branch → specify → clarify → DAX measures → star schema → plan → tasks → PBIP generation → validate → analyze → report visual migration → final validate. This is an end-to-end pipeline — generate BOTH the semantic model AND the report visuals automatically. MANDATORY: You MUST call the `runSubagent` tool 9 times — once for each designated agent (speckit.specify, speckit.clarify, dax-measures, star-schema, speckit.plan, speckit.tasks, pbip-generator, speckit.analyze, report-visual-migration). Do NOT write specs, DAX, schemas, plans, tasks, TMDL, or reports yourself — delegate ALL generation work to the designated agents via runSubagent tool calls. Memory files are scoped: workbook-specific artifacts in .specify/memory/{WorkbookName}/, universal constitutions (constitution.md, report-constitution.md) at .specify/memory/ root.",
   description: "Run full migration pipeline"
 )
 ```
 
-**CRITICAL**: This MUST be a real `runSubagent()` tool call — not a description of what to do. The migration-constitution agent handles all 14 stages internally, calling 9 sub-agents via `runSubagent()`.
+**CRITICAL**: This MUST be a real `runSubagent()` tool call — not a description of what to do. The
+migration-constitution agent handles all 14 stages internally, calling 9 sub-agents via `runSubagent()`.
 
-**If runSubagent fails** (tool access issue), tell the user to run the `/migrate-tableau` prompt, which orchestrates the remaining stages from the top-level session.
+**If runSubagent fails** (tool access issue), tell the user to run the `/migrate-tableau` prompt, which
+orchestrates the remaining stages from the top-level session.
+
+## Skill Reference
+
+`.github/skills/tableau-analysis/SKILL.md` documents the extractor: how to run it, the JSON schema every field
+maps to, and how downstream agents consume it. Read it if you need the field-level contract; you do NOT need it
+to parse XML (the script does that).
 
 ## Important Notes
 
-- Generic — works with ANY `.twb`/`.twbx`, never hardcode file names
-- **Input source**: Always look for workbooks in the `Data/` folder (organized in subfolders per workbook)
-- **Data files** (CSV, Excel, etc.) are co-located with the `.twb` in the same subfolder under `Data/`
-- Always identify connection type for proper M query generation downstream
-- For `.twbx` files (ZIP), extract the `.twb` inside first
-- Tableau brackets: `[field_name]`, internal calcs: `[Calculation_XXXX]`
-- Cross-datasource: `[datasource_id].[field_name]`
-- Parameters datasource named `'Parameters'` — list separately
-- The handoff to migration-constitution is AUTOMATIC when `runSubagent` is available; when it is not, return control to the caller
+- Generic — the script works with ANY `.twb`/`.twbx`; never hardcode file names. Discover via `file_search`.
+- **Input source**: workbooks live under `Data/` (one subfolder per workbook); data files (CSV, Excel) are
+  co-located with the `.twb`.
+- `.twbx` files (ZIP) are handled by the script automatically (it unpacks the inner `.twb`).
+- Connection type detection, entity decoding, hierarchy parsing, coordinate scaling, RLS classification, and
+  relationship resolution are all handled deterministically by the script.
+- The handoff to migration-constitution is AUTOMATIC when `runSubagent` is available; when it is not, return
+  control to the caller.
 
 ## Anti-Hallucination Guardrails
 
-- **Extract only what the XML contains.** Never invent tables, fields, calculated fields, sets, groups, bins, or relationships. Every item must trace to a concrete element.
-- **Write `None` for empty categories** instead of fabricating plausible entries.
-- **Copy formulas and format strings verbatim** (after entity decoding) — do not rewrite or guess them.
-- **Label ambiguous items `UNVERIFIED`** rather than filling gaps with assumptions.
-- **Do not perform downstream work** (DAX, schema design, visuals) in this agent — only extract metadata, then hand off.
+- **The JSON is authoritative and deterministic.** Never hand-edit `tableau-extraction.json` or the rendered
+  markdown, and never "fill in" fields the script left empty/None — an empty category means the workbook does
+  not contain it.
+- **Do not re-parse the XML** or re-derive metadata with the model; trust the script's output.
+- **Do not perform downstream work** (DAX, schema design, visuals) in this agent — only run extraction, verify,
+  and hand off.
+- If the script reports `warnings`, relay them verbatim rather than guessing around them.

@@ -14,23 +14,23 @@ Delegation is one level deep only — that is why this pipeline is a prompt file
 
 ## Stage 0 — Analyze the Workbook (via tableau-analysis agent)
 
-Before Stage 1, resolve the target workbook and run the analysis yourself:
+Before Stage 1, resolve the target workbook and run the deterministic extraction:
 
 1. If the user input names a workbook or subfolder, use it. Otherwise list `Data/` and, when more than one
    workbook is present, ask which one to migrate before continuing.
 2. Derive `{WorkbookName}` as the PascalCase, space-free form of the `Data/` subfolder name — this is also
    the `Output/{WorkbookName}/` folder name and the `.specify/memory/{WorkbookName}/` scope.
-3. Call the analysis agent:
+3. Call the analysis agent (it runs the deterministic Python extractor — it does NOT hand-parse XML):
 
 ```
 runSubagent(
   agentName: "tableau-analysis",
-  prompt: "Analyze the Tableau workbook at Data/{subfolder}/{workbook}.twb. Extract datasources, connection types and absolute data file paths, columns with datatypes and semantic roles, calculated fields with formulas, parameters, sets/groups/bins, field formatting, data blending, row-level security, worksheet visual details (mark types, shelves, encodings), dashboard layout zones, navigation buttons, worksheets, dashboards, and relationships. Save the report to .specify/memory/{WorkbookName}/tableau-analysis-output.md. Do NOT attempt to hand off to another agent — return your summary to me and I will continue the pipeline.",
-  description: "Analyze Tableau workbook"
+  prompt: "Run the deterministic Tableau extractor on Data/{subfolder}/{workbook}.twb by executing `python \".github/skills/tableau-analysis/scripts/tableau_extractor.py\" \"Data/{subfolder}/{workbook}.twb\" --name \"{WorkbookName}\"`. This writes .specify/memory/{WorkbookName}/tableau-extraction.json (the deterministic source of truth) plus tableau-analysis-output.md and tableau-visuals-output.md. Verify the JSON parses and relay its summary + any warnings. Do NOT attempt to hand off to another agent — return your summary to me and I will continue the pipeline.",
+  description: "Extract Tableau workbook"
 )
 ```
 
-4. Confirm `.specify/memory/{WorkbookName}/tableau-analysis-output.md` exists before proceeding.
+4. Confirm `.specify/memory/{WorkbookName}/tableau-extraction.json` exists before proceeding.
 
 ## Stages 1–14 — Run the Pipeline
 

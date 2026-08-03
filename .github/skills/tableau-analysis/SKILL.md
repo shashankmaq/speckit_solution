@@ -1,245 +1,107 @@
-# Tableau Workbook Analysis Skill
+# Tableau Workbook Analysis Skill (Deterministic Extractor)
 
 ## Purpose
 
-Analyze any Tableau workbook file (`.twb` or `.twbx`) present in the workspace and extract comprehensive metadata including datasources, columns, calculated fields, parameters, worksheets, dashboards, and relationships. This skill is generic and works with any Tableau workbook regardless of its content or domain.
+Extract comprehensive metadata from any Tableau workbook (`.twb` or `.twbx`) **deterministically** using a
+Python script — not by hand-parsing the XML with the model. The script produces a single authoritative JSON
+document (`tableau-extraction.json`) plus two auto-rendered markdown files, and works with any workbook
+regardless of domain.
+
+> **Why deterministic?** Hand-parsing 200–800 KB of Tableau XML with an LLM is slow and error-prone (missed
+> encodings, hallucinated fields, inconsistent formatting). The script guarantees the same complete output
+> every run, so every downstream agent (constitution, DAX, star-schema, PBIP, report visuals) builds on
+> identical, trustworthy data.
 
 ## When to Use
 
-- User asks to analyze a Tableau workbook
-- User wants to extract metadata from a `.twb` or `.twbx` file
-- User needs a summary of datasources, fields, calculations, or visualizations in a Tableau file
-- User wants to understand the structure of a Tableau workbook before migration
-- As a prerequisite step before generating a Power BI migration constitution
+- As Stage 0 of the Tableau → Power BI migration pipeline, before any generation stage.
+- Whenever a workbook's structure must be captured (datasources, fields, calculations, parameters, worksheets,
+  dashboards, relationships, sets/groups/bins, blending, formatting, RLS, and full visual metadata).
 
-## Instructions
+## How to Run
 
-### Step 1: Locate Tableau Files
-
-Search the `Data/` folder for Tableau workbooks:
-- Use `file_search` with glob patterns `Data/**/*.twb` and `Data/**/*.twbx`
-- Workbooks are organized in subfolders under `Data/` (e.g., `Data/Netflix/`, `Data/Loan/`, `Data/Q3 Buyer/`, `Data/Sales and Customer/`)
-- If a `.twbx` file is found, note that it is a packaged workbook (ZIP containing a `.twb` and data extracts)
-- Do NOT hardcode any specific file name — always discover dynamically
-- Data files (CSV, Excel) are co-located with the `.twb` in the same subfolder
-
-### Step 2: Parse the TWB XML Structure
-
-A `.twb` file is XML. Extract the following metadata sections:
-
-#### 2.1 Workbook Metadata
-- `version` attribute on `<workbook>` element
-- `source-build` and `source-platform` attributes
-
-#### 2.2 Parameters
-- Look for `<datasource name='Parameters'>` 
-- Extract each `<column>` inside with:
-  - `caption` (display name)
-  - `datatype` (integer, string, real, date, etc.)
-  - `param-domain-type` (range, list, all)
-  - Default value from `<calculation formula='...' />`
-  - Range constraints from `<range min='' max='' granularity='' />`
-
-#### 2.3 Datasources
-- Each `<datasource>` element (excluding the Parameters datasource)
-- Extract:
-  - `caption` (display name)
-  - `name` (internal ID)
-  - Connection type from `<connection class='...'>`
-  - File paths from `<named-connection>` elements
-  - Tables/relations from `<relation>` elements
-
-#### 2.4 Columns & Fields
-For each datasource, extract `<column>` elements:
-- `caption` (display name)
-- `name` (internal field name)
-- `datatype` (string, integer, real, boolean, date, datetime)
-- `role` (dimension or measure)
-- `type` (nominal, ordinal, quantitative)
-- `semantic-role` if present (geographic roles like `[State].[Name]`)
-
-#### 2.5 Calculated Fields
-Identify columns with nested `<calculation>` elements:
-- `caption` (calculated field name)
-- `formula` (the Tableau calculation expression — decode XML entities like `&quot;`, `&gt;`, `&lt;`, `&amp;`, `&#13;&#10;`)
-- `datatype` and `role`
-- Table calculation settings from `<table-calc>` if present (ordering-type, ordering-field)
-
-#### 2.6 Worksheets
-- Each `<worksheet name='...'>` element
-- Extract the worksheet name
-
-#### 2.7 Dashboards
-- Each `<dashboard name='...'>` element
-- Extract the dashboard name (decode `&amp;` etc.)
-
-#### 2.8 Relationships / Joins
-- Look for `<relation type='join'>` elements inside datasource connections
-- Extract join type, left/right tables, and join clauses from `<clause>` elements
-- Also check for multi-table `<relation type='collection'>` (logical model)
-
-#### 2.9 Sets (MANDATORY — extract if present)
-Tableau sets are `<group>` elements that define a subset of dimension members.
-- **Fixed (constant) set**: `<group name='[... Set]'>` containing `<groupfilter function='member' ...>` clauses listing explicit member values
-- **Computed (dynamic) set**: `<group name='[... Set]'>` containing `<groupfilter function='filter' ...>` or a top-N condition (e.g. `function='end'` with a `<groupfilter function='top'>` child)
-- Extract: set name, source dimension/field, set type (fixed vs computed), and the member list or top-N condition
-- If NO `<group>` set elements exist, write `None` — do not invent sets
-
-#### 2.10 Groups (MANDATORY — extract if present)
-Tableau groups merge dimension members under an alias.
-- Look for `<group name='[... (group)]'>` elements OR `<calculation class='categorical-bin'>` group columns
-- Extract: group field name, source dimension, and each alias → list of member values it maps
-- If NO group elements exist, write `None` — do not invent groups
-
-#### 2.11 Bins (MANDATORY — extract if present)
-- Look for `<column>` elements with `<calculation class='bin' ... />`
-- Extract: bin field name, source numeric field, and bin size (`decimal-bin-size` / `bin-size` attribute)
-- If NO bin elements exist, write `None` — do not invent bins
-
-#### 2.12 Data Blending (MANDATORY — extract if present)
-Blending occurs when a workbook has MORE THAN ONE real datasource and worksheets reference fields across them on common dimensions.
-- Count real `<datasource>` elements (excluding the `Parameters` datasource)
-- If more than one, inspect worksheets for cross-datasource field references and look for `<datasource-dependencies>` blocks naming a secondary datasource
-- Extract: primary datasource, secondary datasource(s), and the linking field(s) (common dimension names)
-- If only ONE real datasource exists, write `Single datasource — no blending` — do not invent a blend
-
-#### 2.13 Field Formatting (MANDATORY — extract if present)
-- For columns and calculated fields, capture any `<format>` / `default-format` / `aggregation` formatting attributes that define a display format (currency, percentage, decimals, date pattern)
-- Record the raw Tableau format string verbatim (e.g. `$#,##0`, `0.0%`, `[h]:mm:ss`, `mmmm yyyy`)
-- These map to Power BI `formatString` values in the DAX/PBIP stages
-- If a field has no explicit format, write `Default` — do not invent a format
-
-#### 2.14 Row-Level Security (RLS) (MANDATORY — detect if present)
-
-Tableau enforces row-level security through user functions inside calculated fields or filters and through user-mapping (entitlement) tables. Detect ANY of the following signals:
-
-- **User functions** in a `<calculation>` formula or filter: `USERNAME()`, `FULLNAME()`, `ISMEMBEROF('Group')`, `ISUSERNAME(...)`, `ISFULLNAME(...)`
-- **User-filter / data-source filter** entries that compare a user function to a column (e.g. `[Username] = USERNAME()`)
-- **User-mapping table**: a datasource/relation whose rows pair a user identifier with an entitlement value (e.g. `User_Access` with `Username` + `Country`) joined/blended to a secured table on the entitlement column
-- **Hardcoded per-user predicates** (e.g. `USERNAME() = "x" AND [Region] = "India"`)
-
-For each detected signal, classify the intended Power BI pattern:
-
-| Tableau construct | Power BI equivalent |
-|-------------------|---------------------|
-| `USERNAME()` in a calc | `USERPRINCIPALNAME()` (UPN/email) |
-| `FULLNAME()` | `USERNAME()` (DOMAIN\\user) — rarely needed |
-| `ISMEMBEROF('Group')` | Assign AD/Entra group to the role in the Power BI Service |
-| User-mapping CSV (Username→entitlement) joined to data | **Dynamic RLS**: filter the mapping table by the current user |
-| Hardcoded `USERNAME() = "x" AND value = "India"` | **Static RLS**: one role per value |
-
-Record: detection flag (`Yes`/`No`), the RLS type (Dynamic mapping-table / Static per-value / Group-based), the secured table + entitlement column, the mapping table + user column (if any), and a suggested role name per role.
-
-If NO RLS signals exist, write `Detected: No` — do not invent roles or mapping tables.
-
-### Step 3: Output Format
-
-Present the extracted metadata in a structured markdown format:
-
-```markdown
-# Tableau Workbook Analysis: {workbook_name}
-
-## Workbook Info
-- **Version**: ...
-- **Source Build**: ...
-- **Platform**: ...
-
-## Parameters
-| Name | Data Type | Domain Type | Default | Range/Values |
-|------|-----------|-------------|---------|--------------|
-
-## Datasources
-### {Datasource Caption}
-- **Connection Type**: ...
-- **Source File(s)**: ...
-- **Tables**: ...
-
-#### Dimensions
-| Display Name | Field Name | Data Type | Semantic Role |
-|--------------|------------|-----------|---------------|
-
-#### Measures
-| Display Name | Field Name | Data Type |
-|--------------|------------|-----------|
-
-## Calculated Fields
-| Name | Formula | Data Type | Type | Table Calc |
-|------|---------|-----------|------|------------|
-
-## Worksheets
-1. ...
-
-## Dashboards
-1. ...
-
-## Relationships
-| Left Table | Right Table | Join Type | Condition |
-|------------|-------------|-----------|-----------|
-
-## Sets
-| Set Name | Source Field | Type (Fixed/Computed) | Members / Condition |
-|----------|--------------|-----------------------|---------------------|
-
-## Groups
-| Group Field | Source Dimension | Alias | Member Values |
-|-------------|------------------|-------|---------------|
-
-## Bins
-| Bin Field | Source Field | Bin Size |
-|-----------|--------------|----------|
-
-## Data Blending
-| Primary Datasource | Secondary Datasource | Linking Field(s) |
-|--------------------|----------------------|------------------|
-
-## Field Formatting
-| Field | Tableau Format String | Kind (Currency/Percent/Date/Number) |
-|-------|-----------------------|-------------------------------------|
-
-## Row-Level Security (RLS)
-- **Detected**: Yes / No
-- **Type**: Dynamic (mapping table) / Static (per-value) / Group-based / None
-- **Secured Table.Column**: {table}.{entitlement column}
-- **Mapping Table.User Column**: {mapping table}.{user column} (only for Dynamic)
-
-| Suggested Role | RLS Type | Secured Table | Entitlement Column | Mapping Table | User Column | Power BI Filter (DAX intent) |
-|----------------|----------|---------------|--------------------|---------------|-------------|------------------------------|
+```powershell
+python ".github/skills/tableau-analysis/scripts/tableau_extractor.py" "<path to .twb or .twbx>" --name "{WorkbookName}"
 ```
 
-> **NOTE**: Include the Sets, Groups, Bins, Data Blending, Field Formatting, and Row-Level Security (RLS) sections in EVERY analysis output. If a category has no items in the workbook, keep the section heading and write a single row stating `None` (or `Single datasource — no blending`, or `Detected: No` for RLS). Never omit a section and never fabricate rows.
+- **Input**: a single `.twb`/`.twbx` file, OR a folder (every workbook underneath is processed).
+- `--name {WorkbookName}` — output subfolder under `.specify/memory/` (PascalCase, e.g. `NetflixRLS`). Omit to
+  accept the default derived from the `Data/` subfolder name.
+- `--out-dir DIR` — write artifacts to an explicit directory instead of `.specify/memory/{name}/`.
+- `--no-markdown` — emit only the JSON.
+- `--stdout` — print the JSON to stdout instead of writing files (useful for piping / inspection).
+- Requires only the Python 3.8+ standard library. `.twbx` archives are unpacked automatically.
 
-### Step 4: Save Analysis Output
+### Outputs (written to `.specify/memory/{WorkbookName}/`)
 
-**MANDATORY**: After extracting metadata, save the full structured output to `.specify/memory/tableau-analysis-output.md`. This file serves as the input context for the automatic constitution generation step.
+| File | Role |
+|------|------|
+| `tableau-extraction.json` | **Source of truth** — complete structured extraction for downstream agents |
+| `tableau-analysis-output.md` | Human-readable analysis, auto-rendered from the JSON (backward compatibility) |
+| `tableau-visuals-output.md` | Human-readable visual inventory, auto-rendered from the JSON (backward compatibility) |
 
-### Step 5: Hand Off to Migration Pipeline
+## JSON Schema (top-level keys)
 
-After saving, **automatically** call the `migration-constitution` agent which handles the rest:
-1. **Constitution** — Power BI best practices (star schema, DAX, naming, relationships, performance, parameters, semantic layer, traceability)
-2. **Specify** — Detailed migration spec (tables, columns, measures, relationships, parameters)
-3. **Clarify** — Resolve ambiguities (measure vs column, unclear joins, table calcs, data categories)
+Every key is always present; empty categories are `[]`/`None` (never omitted, never fabricated).
 
-### Step 6: Additional Analysis (if requested)
-- Identify unused fields and overly complex calculations (deeply nested table calcs) for cleanup recommendations
-- Flag any Tableau feature with no documented Power BI mapping (e.g. `SCRIPT_*()` R/Python calls, forecasting, trend lines) so a human can decide
+| Key | Contents |
+|-----|----------|
+| `schema_version`, `extractor_version` | Versioning of the output contract |
+| `source_file`, `workbook_name`, `data_subfolder`, `suggested_output_folder_name` | Provenance + suggested PascalCase folder |
+| `workbook` | `version`, `original_version`, `source_build`, `source_platform` |
+| `parameters[]` | name, caption, datatype, role, `domain_type` (any/range/list), `default_value`, `default_formula`, `format`, `range` {min,max,granularity}, `members[]`, `aliases[]` (key→value), `powerbi_mapping` |
+| `datasources[]` | name, caption, `connections[]` (class, `connection_type`, `m_query_pattern`, file/server/db), `connection_types[]`, `relations_type`, `physical_tables[]` (name, caption, columns), `joins[]` (legacy), `object_relationships[]` (modern), `columns[]`, `column_instances[]`, `sets[]`, `groups[]`, `bins[]` |
+| `datasources[].columns[]` | name, caption, datatype, role (dimension/measure), type, `semantic_role`, `data_category`, aggregation, `format`, `powerbi_format`, `format_kind`, hidden, `physical_table`, `is_calculated`, `calculation` {class, formula (verbatim, decoded), table_calc} |
+| `fields` | Convenience flattened `dimensions[]`, `measures[]`, `calculated_fields[]` across all datasources |
+| `worksheets[]` | name, title {text,font,size,color,bold,align}, datasource, `mark_type`, `all_marks[]`, `inferred_powerbi_visual`, `rows[]`/`cols[]` (parsed pills: aggregation, date_part, field, caption, is_generated), `hierarchy[]`, `encodings` {color,size,text,label,wedge_size,detail,lod,shape,geometry,angle,path}, `filters[]` (class, field, kind, members, top_n, is_action_filter, range), `top_n`, `dual_axis`, `reference_lines[]`, `referenced_fields[]`, `referenced_calculations[]`, `color_encoding`, `style` |
+| `dashboards[]` | name, size {width,height,sizing_mode}, style, `visuals[]` (worksheet + position raw & `_px`), `filters[]`, `parameter_controls[]`, `images[]`, `text_zones[]`, `buttons[]` |
+| `dashboards[].buttons[]` | id, `action_type` (goto-sheet/toggle), `target_dashboard` (resolved from window-id GUID) or `target_zone_ids[]`, tooltip, image_path, states[], position, `powerbi_mapping` |
+| `windows[]` | class, name, uuid (GUID↔dashboard resolution) |
+| `relationships[]` | datasource, left_table, left_column, right_table, right_column, join_type, operator |
+| `sets[]`, `groups[]`, `bins[]` | Real user sets/groups/bins (auto-generated dashboard-action groups are excluded) |
+| `data_blending` | is_blended, primary, secondary[], linking_fields[], note |
+| `field_formatting[]` | field, format (verbatim Tableau), kind (Currency/Percent/Date/Number), `powerbi_format` |
+| `row_level_security` | detected, type (Dynamic/Static/Group-based/None), signals[], user_functions[], mapping_table, user_column, entitlement_column, secured_table, roles[] (with `dax_intent`) |
+| `summary` | Counts + `connection_types[]` + `rls_detected` |
+| `warnings[]` | Any parse ambiguities the script flagged |
+
+## How Downstream Agents Consume It
+
+- **migration-constitution / speckit.specify / speckit.clarify** — read `datasources`, `fields`, `parameters`,
+  `relationships`, `data_blending`, `row_level_security` to scope the spec.
+- **dax-measures** — read `fields.calculated_fields` (verbatim formulas + table_calc) and `field_formatting`.
+- **star-schema** — read `datasources[].physical_tables`, `relationships`, `data_blending`, and
+  `row_level_security` (mapping table + roles).
+- **report-visual-migration** — read `worksheets` (mark_type, inferred visual, encodings, filters, top_n) and
+  `dashboards` (sizes, zone `_px` positions, buttons, slicers, images).
+
+## Source-Type Detection (handled by the script)
+
+| Tableau connection class | Detected type | Power BI M pattern |
+|---|---|---|
+| `textscan` / `textclean` | CSV | `Csv.Document(File.Contents(...))` |
+| `excel-direct` / `excel` | Excel | `Excel.Workbook(File.Contents(...))` |
+| `sqlserver` | SQL Server | `Sql.Database(...)` |
+| `postgres` | PostgreSQL | `PostgreSQL.Database(...)` |
+| `mysql` | MySQL | `MySQL.Database(...)` |
+| `oracle`, `snowflake`, `databricks`, `bigquery`, `redshift`, … | mapped | vendor connector / `Odbc.DataSource(...)` |
 
 ## Anti-Hallucination Rules (MANDATORY)
 
-These rules keep extraction grounded in the actual `.twb` XML and prevent scope inflation:
-
-1. **Extract only what exists.** Every table, column, calculated field, parameter, set, group, bin, relationship, and format MUST be traceable to a concrete XML element in the workbook. Never invent names, fields, or values.
-2. **Use `None` for absent categories.** If a section (Sets, Groups, Bins, Data Blending, etc.) has no source elements, write `None` — do not fabricate plausible-sounding entries.
-3. **Quote, don't paraphrase, formulas and format strings.** Copy Tableau calculation formulas and format strings verbatim (after decoding XML entities). Do not "improve" or guess them.
-4. **One pass, fixed scope.** Extract the sections defined in Step 2 and Step 3 only. Do not add extra analyses, speculative measures, or design recommendations beyond what is requested.
-5. **Mark uncertainty explicitly.** If an element is ambiguous or unparseable, label it `UNVERIFIED` rather than guessing a value. Do not silently fill gaps.
-6. **No downstream design here.** This skill EXTRACTS metadata only. Do not generate DAX, star-schema designs, or visuals — those are separate pipeline stages.
+1. **The script is the only extractor.** Do not hand-parse the `.twb` XML, and do not re-derive or "improve"
+   any field with the model.
+2. **The JSON is authoritative.** Never edit `tableau-extraction.json` (or the rendered markdown) by hand.
+3. **Empty means empty.** A category emitted as `[]`/`None` means the workbook does not contain it — never fill
+   it in with plausible entries.
+4. **Formulas and formats are verbatim.** The script copies them after XML-entity decoding; do not rewrite them.
+5. **Surface warnings.** If `warnings[]` is non-empty, relay it rather than guessing around the ambiguity.
+6. **No downstream design here.** This stage EXTRACTS only — DAX, star-schema, and visuals are later stages.
 
 ## Notes
 
-- GENERIC — never hardcode file names, discover dynamically via file search
-- Decode XML entities in formulas and names
-- For `.twbx` (ZIP), extract the `.twb` inside
-- Bracket notation: `[field_name]`, internal calcs: `[Calculation_XXXX]`
-- Cross-datasource: `[datasource_name].[field_name]`
-- Pipeline (constitution → specify → clarify) is AUTOMATIC — no confirmation needed
+- GENERIC — never hardcode file names; discover dynamically via `file_search`.
+- Auto-generated dashboard-action groups (`user:auto-column='sheet_link'`) are intentionally excluded from
+  `sets`/`groups`.
+- Dashboard zone coordinates are provided in both raw (0–100000) and pixel form (`*_px`, scaled to the
+  dashboard size) for direct use by the report layer.
 - Ref: https://learn.microsoft.com/en-us/power-bi/guidance/

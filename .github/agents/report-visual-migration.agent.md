@@ -96,20 +96,27 @@ These rules MUST be followed for every migration. They ensure the Power BI repor
 
 ## Execution — Full Visual Migration Pipeline (ALL stages MANDATORY)
 
-### Stage 1: Visual Extraction (MUST parse .twb XML directly)
+### Stage 1: Visual Extraction (read the deterministic JSON)
 
-**CRITICAL**: This stage MUST read and parse the actual `.twb` XML file — NOT just rely on the high-level analysis summary in `tableau-analysis-output.md`. The analysis file only contains metadata (datasources, columns, calculated fields). It does NOT contain mark types, field shelves, or dashboard zone positions needed to generate correct visuals.
+**CRITICAL**: Visual extraction is DETERMINISTIC. The `tableau-analysis` stage already ran
+`.github/skills/tableau-analysis/scripts/tableau_extractor.py`, which captured every mark type, field shelf,
+encoding, filter, and dashboard zone position into `.specify/memory/{WorkbookName}/tableau-extraction.json`.
+**Read that JSON — do NOT hand-parse the `.twb` XML.**
 
-**Step 1a: Locate the TWB file**
-- Read `.specify/memory/{WorkbookName}/tableau-analysis-output.md` to get worksheet/dashboard names
-- Use `file_search` with `Data/**/*.twb` to locate the actual workbook file
+**Step 1a: Load the extraction JSON**
+- Read `.specify/memory/{WorkbookName}/tableau-extraction.json` (rendered summary also at
+  `tableau-visuals-output.md`).
+- If the JSON is missing, re-run the extractor per `.github/skills/tableau-analysis/SKILL.md` (do not parse XML
+  yourself).
+- Use `worksheets[]` for per-visual encodings and `dashboards[]` for layout; both are already complete.
 
-**Step 1b: Parse worksheet visual encodings from TWB XML**
+**Step 1b: Read worksheet visual encodings from the JSON**
 
-For EACH `<worksheet>`, parse the `<table><panes><pane>` element to extract:
+For EACH `worksheets[]` entry in `tableau-extraction.json`, the following are ALREADY extracted (interpret /
+adjust chart type via `tableau-mark-mapping` only if you must justify a change):
 
-1. **Mark type**: `<mark class='...'>` — determines the Power BI visual type
-   - Bar → clusteredBarChart or clusteredColumnChart (check rows/cols for orientation)
+1. **`mark_type`** + **`inferred_powerbi_visual`** — the Power BI visual type is already resolved:
+   - Bar → clusteredBarChart or clusteredColumnChart (check `rows`/`cols` for orientation)
    - Line → lineChart
    - Pie → pieChart
    - Square (with color+size on measure) → treemap
@@ -117,86 +124,67 @@ For EACH `<worksheet>`, parse the `<table><panes><pane>` element to extract:
    - Area → areaChart
    - Text (single measure) → card
    - Text (rows+cols) → pivotTable
-   - Automatic → INFER from encodings (see rules in tableau-visual-extraction SKILL.md)
+   - Automatic → already inferred (see rules in tableau-visual-extraction SKILL.md if you must justify a change)
 
-2. **Field shelves**:
-   - `<rows>` → Y-axis fields (may contain hierarchy with `/` separators)
-   - `<cols>` → X-axis fields
+2. **`rows[]` / `cols[]`** (parsed pills — each has `aggregation`, `date_part`, `field`, `caption`, `is_generated`):
+   - `rows` → Y-axis fields (`hierarchy[]` lists any drill path)
+   - `cols` → X-axis fields
 
-3. **Encodings** from `<pane><encodings>`:
-   - `<color column='...'>` → Legend/color series field
-   - `<size column='...'>` → Size encoding (treemap indicator)
-   - `<text column='...'>` → Data labels
-   - `<wedge-size column='...'>` → Pie chart measure
+3. **`encodings`** (already resolved to field captions):
+   - `color` → Legend/color series field
+   - `size` → Size encoding (treemap indicator)
+   - `text` / `label` → Data labels
+   - `wedge_size` → Pie chart measure
 
 4. **Dual-axis / combo** (detect, do not assume): a worksheet with TWO measures on one axis or a `<dual-axis>` marker →
    - Bar/Column + Line → `lineClusteredColumnComboChart` / `lineStackedColumnComboChart`
    - Two lines, independent scales → `lineChart` with secondary value axis
    - Record both measures and which is the secondary axis. If none, treat as single-measure visual.
 
-5. **Reference / trend lines** (`<reference-line>`, `<reference-line-aggregation>`, `<trend-lines>`) →
+5. **Reference / trend lines** (JSON `reference_lines[]`) →
    - Constant/average/min/max → analytics-pane constant/average/min/max line
    - Trend → analytics-pane trend line
-   - If none present, add no analytics lines (do not invent them).
+   - If the array is empty, add no analytics lines (do not invent them).
 
 **Step 1b-i: Field formatting**
-- Apply the Tableau field format strings captured in `tableau-analysis-output.md` to the matching visual fields / measures (see the Format String Translation table in `tableau-visual-extraction/SKILL.md`). Where no format was captured, leave the model default — do not guess.
+- Apply the per-field `powerbi_format` (and `field_formatting[]`) from `tableau-extraction.json` to the matching
+  visual fields / measures. Where no format was captured, leave the model default — do not guess.
 
-**Step 1c: Parse dashboard zone layout from TWB XML**
+**Step 1c: Read dashboard zone layout from the JSON**
 
-For EACH `<dashboard>`, extract:
-- `<size maxwidth='...' maxheight='...'>` → dashboard pixel dimensions
-- Each `<zone>` element → type (viz/filter/paramctrl), name (worksheet), x, y, w, h positions
-- Each `<zone type-v2='dashboard-object'>` with `<button>` child → navigation/toggle buttons
+For EACH `dashboards[]` entry, the JSON already provides:
+- `size` → dashboard pixel dimensions (`width`/`height`)
+- `visuals[]` / `filters[]` / `parameter_controls[]` / `images[]` / `text_zones[]` — each with raw and pixel
+  (`*_px`) positions
+- `buttons[]` — navigation/toggle buttons (see Step 1c-ii)
 
-**Step 1c-ii: Parse navigation buttons from TWB XML**
+**Step 1c-ii: Read navigation buttons from the JSON**
 
-For EACH `<dashboard>`, find all zones with `type-v2='dashboard-object'` containing `<button>` elements:
+Each `dashboards[].buttons[]` entry is already resolved:
 
-1. **Page navigation buttons** (`action='tabdoc:goto-sheet window-id="..."'`):
-   - Extract the `window-id` value from the action attribute
-   - Resolve to target dashboard name by matching `<window class='dashboard' name='...'>` elements
-   - Extract tooltip from `<button-visual-state><tooltip-text>`
-   - Record zone position: x, y, w, h
+1. **Page navigation buttons** (`action_type: "goto-sheet"`):
+   - `target_dashboard` — already resolved from the `window-id` GUID to the destination dashboard name
+   - `tooltip`, `image_path`, and `position` are provided
 
-2. **Toggle buttons** (empty `action=''` with `<toggle-action>` child):
-   - Extract `zone-ids` from `<toggle-action>` text to identify target zones
-   - Extract tooltip from `<button-visual-state><tooltip-text>` (may have multiple visual states)
-   - Record zone position: x, y, w, h
-   - Note: toggle buttons have `active-visual-state-index` indicating default state
-
-3. **Button container layout**:
-   - Note parent zone `friendly-name` (e.g., "Horizontal Cont. (Button)")
-   - Note `layout-strategy-id` (e.g., "distribute-evenly") for positioning
+2. **Toggle buttons** (`action_type: "toggle"`):
+   - `target_zone_ids[]` — the zones shown/hidden
+   - `states[]` — tooltip/image per visual state; `active_visual_state_index` marks the default
+   - `position` is provided
 
 **Power BI mapping for buttons** (canonical detail in `.github/skills/report-navigation-buttons/SKILL.md`):
 - `goto-sheet` → `actionButton` visual with `visualContainerObjects.visualLink.type = "PageNavigation"` and `navigationSection` target page name (NOT `objects.action`)
-- `toggle` (show/hide zones) → `actionButton` visual with `visualContainerObjects.visualLink.type = "Bookmark"` (note: requires bookmark pairs for show/hide states — generate a comment in output noting manual bookmark setup needed)
+- `toggle` (show/hide zones) → `actionButton` visual with `visualContainerObjects.visualLink.type = "Bookmark"`, wired to an **auto-generated Show/Hide bookmark pair** under `definition/bookmarks/` that toggles the target visuals' visibility (see `report-navigation-buttons` — no manual setup required)
 
-**Step 1d: Save comprehensive visual extraction output**
+**Step 1d: Confirm the deterministic visual extraction is present**
 
-Save ALL extracted data to: `.specify/memory/{WorkbookName}/tableau-visuals-output.md`
+The extractor already wrote `.specify/memory/{WorkbookName}/tableau-extraction.json` (and the rendered
+`tableau-visuals-output.md`). Do NOT regenerate them by hand.
 
 **VALIDATION GATE**: Before proceeding to Stage 2, verify:
-- [ ] Every worksheet from the analysis has a corresponding mark type extracted
-- [ ] Dashboard zone positions have been extracted for ALL dashboards
-- [ ] Navigation buttons have been extracted for ALL dashboards that contain `<button>` elements
-- [ ] The output file `.specify/memory/{WorkbookName}/tableau-visuals-output.md` exists and contains the Visual Inventory table
-- **If ANY of these checks fail, DO NOT proceed** — re-parse the TWB until extraction is complete
-
-**Example PowerShell to extract mark types** (use as reference):
-```powershell
-[xml]$twb = Get-Content "Data/{subfolder}/{workbook}.twb" -Raw
-$twb.workbook.worksheets.worksheet | ForEach-Object {
-    $name = $_.name
-    $pane = $_.table.panes.pane
-    if ($pane -is [array]) { $pane = $pane[0] }
-    $mark = if ($pane.mark -is [array]) { $pane.mark[0].class } else { $pane.mark.class }
-    $rows = $_.table.rows
-    $cols = $_.table.cols
-    Write-Host "$name | mark=$mark | rows=$rows | cols=$cols"
-}
-```
+- [ ] `tableau-extraction.json` exists and every `worksheets[]` entry has `mark_type` + `inferred_powerbi_visual`
+- [ ] Dashboard zone positions (`*_px`) are present for ALL `dashboards[]`
+- [ ] `buttons[]` are present for every dashboard that had navigation/toggle buttons
+- **If ANY check fails, re-run the deterministic extractor** (`tableau-analysis/SKILL.md`) — do NOT hand-parse the TWB.
 
 ### Stage 2: Read Universal Report Constitution
 
@@ -271,7 +259,7 @@ Review the specification for ambiguities:
 4. Are there interactive features (actions, highlights) that need bookmarks?
 5. Are there dual-axis charts that need combo chart mapping?
 6. Are there navigation buttons that target dashboards not in this workbook?
-7. Are there toggle buttons — note that bookmark-based toggling requires manual bookmark creation in Power BI Desktop after opening?
+7. Are there toggle buttons — generate a Show/Hide bookmark pair under `definition/bookmarks/` and wire each button's `visualLink.bookmark` to it (no manual setup)?
 
 **CRITICAL Visual Type Matching Rules:**
 - Tableau Text mark with rows only → `tableEx` (flat table) — NEVER bar/column chart
@@ -518,7 +506,7 @@ Output/{WorkbookName}/{ProjectName}.Report/
       }}],
       "fill": [{"properties": {
         "show": {"expr": {"Literal": {"Value": "true"}}},
-        "fillColor": {"solid": {"color": {"expr": {"Literal": {"Value": "'#072a35'"}}}}}
+        "fillColor": {"solid": {"color": {"expr": {"Literal": {"Value": "'{button_fill_color}'"}}}}}
       }}],
       "text": [{"properties": {
         "show": {"expr": {"Literal": {"Value": "true"}}},
@@ -537,7 +525,7 @@ Output/{WorkbookName}/{ProjectName}.Report/
       }}],
       "background": [{"properties": {
         "show": {"expr": {"Literal": {"Value": "true"}}},
-        "color": {"solid": {"color": {"expr": {"Literal": {"Value": "'#072a35'"}}}}}
+        "color": {"solid": {"color": {"expr": {"Literal": {"Value": "'{button_fill_color}'"}}}}}
       }}],
       "border": [{"properties": {
         "show": {"expr": {"Literal": {"Value": "false"}}}
@@ -553,7 +541,7 @@ Output/{WorkbookName}/{ProjectName}.Report/
 > - `visualLink.navigationSection` = the `name` field from the target page's `page.json` (e.g. `"'ReportSection2'"`).
 > - Button label (`text.text`) should use the extracted tooltip text from Tableau (e.g. "Go to Sales Dashboard").
 > - Use high z-index (1000+) so buttons render above other visuals.
-> - Style the button background/fill to match the Tableau button bar color (e.g., `#072a35` for dark nav bars).
+> - Style the button background/fill from the Tableau button-bar zone style (`{button_fill_color}`) — do NOT hardcode a color.
 > - Set `title.show = false` — buttons don't need titles.
 > - Group navigation buttons together at the same y-position with consistent spacing.
 
@@ -577,7 +565,7 @@ Output/{WorkbookName}/{ProjectName}.Report/
       }}],
       "fill": [{"properties": {
         "show": {"expr": {"Literal": {"Value": "true"}}},
-        "fillColor": {"solid": {"color": {"expr": {"Literal": {"Value": "'#072a35'"}}}}}
+        "fillColor": {"solid": {"color": {"expr": {"Literal": {"Value": "'{button_fill_color}'"}}}}}
       }}],
       "text": [{"properties": {
         "show": {"expr": {"Literal": {"Value": "false"}}}
@@ -587,14 +575,14 @@ Output/{WorkbookName}/{ProjectName}.Report/
       "visualLink": [{"properties": {
         "show": {"expr": {"Literal": {"Value": "true"}}},
         "type": {"expr": {"Literal": {"Value": "'Bookmark'"}}},
-        "bookmark": {"expr": {"Literal": {"Value": "''"}}}
+        "bookmark": {"expr": {"Literal": {"Value": "'{bookmark_id}'"}}}
       }}],
       "title": [{"properties": {
         "show": {"expr": {"Literal": {"Value": "false"}}}
       }}],
       "background": [{"properties": {
         "show": {"expr": {"Literal": {"Value": "true"}}},
-        "color": {"solid": {"color": {"expr": {"Literal": {"Value": "'#072a35'"}}}}}
+        "color": {"solid": {"color": {"expr": {"Literal": {"Value": "'{button_fill_color}'"}}}}}
       }}],
       "border": [{"properties": {
         "show": {"expr": {"Literal": {"Value": "false"}}}
@@ -606,11 +594,13 @@ Output/{WorkbookName}/{ProjectName}.Report/
 
 > **Toggle Button Notes** (canonical detail in `.github/skills/report-navigation-buttons/SKILL.md`):
 > - **The action MUST be in `visualContainerObjects.visualLink`, NOT `objects.action`.**
-> - `visualLink.type` = `'Bookmark'` — requires bookmarks to be created manually in Power BI Desktop.
-> - Leave `visualLink.bookmark` empty (`"''"`) — user must assign bookmarks after opening in Desktop.
+> - `visualLink.type` = `'Bookmark'`, and `visualLink.bookmark` = the `name` (hex id) of an auto-generated bookmark — NEVER leave it empty.
+> - Generate a Show/Hide bookmark pair under `definition/bookmarks/` (`bookmarks.json` + one `.bookmark.json` per state) that toggles the visibility of the visuals mapped from the Tableau `toggle-action` `zone-ids`. No manual Desktop setup required.
+> - **`display.mode` enum — `"visible"` is INVALID.** Only `hidden`, `maximize`, `spotlight`, `elevation` are allowed (`bookmark/1.4.0` schema). To SHOW a visual in a bookmark, OMIT it from `visualContainers`; each bookmark lists ONLY the visuals it HIDES (`"display": {"mode": "hidden"}`). Using `"visible"` makes Desktop reject the `.pbip` with *"JSON does not match any schemas from 'anyOf' … singleVisual.display.mode"* — and the validators do NOT catch it.
+> - Reproduce a full toggle with two stacked buttons (Show + Hide) at the same position, each wired to one bookmark and hidden by the opposite bookmark; for a single button, wire it to the Show bookmark and note the single-direction limitation.
+> - Style the button fill from the Tableau button-bar zone style (`{button_fill_color}`) — do NOT hardcode a color.
 > - Use `icon.shapeType = "'Filter'"` for filter toggle buttons (matches the filter icon concept).
-> - Add a comment in the visual-spec noting that bookmark pairs (show/hide states) must be created manually.
-> - Tooltip text from Tableau (e.g., "Show Dashboard Filters" / "Close Dashboard Filters") should be noted in spec for user reference.
+> - Tooltip text from Tableau (e.g., "Show Dashboard Filters" / "Close Dashboard Filters") drives the bookmark `displayName`.
 
 **Write ALL files using UTF-8 without BOM.**
 

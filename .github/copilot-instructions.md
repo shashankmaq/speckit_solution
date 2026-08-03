@@ -1,7 +1,7 @@
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at specs/001-netflixrls-pbi/plan.md
+at specs/002-q3-dealer-buying-pbi/plan.md
 <!-- SPECKIT END -->
 
 # Tableau → Power BI Semantic Model Migration Pipeline
@@ -45,11 +45,12 @@ The `migration-constitution` playbook covers all 14 stages:
 - Calls `tableau-analysis` for Stage 0, then runs Stages 1–14
 - Runs in the top-level session so all nine stage agents are reachable via `runSubagent`
 
-### Stage 0: `tableau-analysis`
-- Discovers and parses `.twb` file from the `Data/` folder (organized in subfolders)
-- Extracts: datasources, columns, calculated fields, parameters, worksheets, dashboards
+### Stage 0: `tableau-analysis` (deterministic Python extractor)
+- Runs `.github/skills/tableau-analysis/scripts/tableau_extractor.py` — extraction is DETERMINISTIC Python, not LLM XML parsing
+- Handles `.twb` and `.twbx` (unpacks the ZIP) from the `Data/` folder (organized in subfolders)
+- Extracts EVERYTHING: datasources + connection types, physical tables + columns, semantic fields (dimensions/measures/calculated fields with verbatim formulas), parameters (any/range/list), worksheets (mark type + inferred Power BI visual, encodings, filters, Top-N, dual-axis, reference lines, hierarchy), dashboards (size, zone positions in raw + pixel form, filters, param controls, images, navigation/toggle buttons with resolved targets), relationships (legacy + object-model), sets/groups/bins, data blending, field formatting, and RLS (Dynamic/Static/Group-based)
 - Detects source type (CSV, SQL Server, PostgreSQL, Excel, etc.)
-- Saves output to `.specify/memory/{WorkbookName}/tableau-analysis-output.md`
+- Saves `.specify/memory/{WorkbookName}/tableau-extraction.json` (**source of truth**) plus auto-rendered `tableau-analysis-output.md` and `tableau-visuals-output.md` (backward compatibility)
 - Returns control to the orchestrator
 
 ### Orchestrator: `migration-constitution` (loaded by the prompt)
@@ -122,10 +123,11 @@ Output/
 ├── constitution.md                          ← UNIVERSAL (never overwritten per workbook)
 ├── report-constitution.md                   ← UNIVERSAL (never overwritten per workbook)
 ├── {WorkbookName}/                          ← Per-workbook scoped artifacts
-│   ├── tableau-analysis-output.md
+│   ├── tableau-extraction.json              ← DETERMINISTIC source of truth (Stage 0)
+│   ├── tableau-analysis-output.md           ← auto-rendered from the JSON
 │   ├── dax-measures-output.md
 │   ├── star-schema-output.md
-│   ├── tableau-visuals-output.md
+│   ├── tableau-visuals-output.md            ← auto-rendered from the JSON
 │   └── theme-overrides.md (optional)
 ```
 
@@ -163,7 +165,7 @@ report-visual-migration (orchestrates ALL stages internally)
 ```
 
 The `report-visual-migration` agent runs 8 stages:
-1. Extract Tableau visual metadata (chart types, positions, encodings, filters)
+1. Read Tableau visual metadata from the deterministic `tableau-extraction.json` (chart types, positions, encodings, filters)
 2. Generate report constitution (layout rules, theme, typography, alignment)
 3. Write visual specification (Power BI visual types, positions, data bindings)
 4. Clarify ambiguities (chart type alternatives, layout adaptations)
@@ -174,8 +176,7 @@ The `report-visual-migration` agent runs 8 stages:
 
 ### Entry Point: `report-visual-migration`
 - Called automatically by `migration-constitution` (Stage 12), OR can be invoked manually
-- Reads `.twb` file from `Data/` folder to extract worksheets/dashboards visual metadata
-- Saves visual extraction to `.specify/memory/tableau-visuals-output.md`
+- Reads visual metadata from `.specify/memory/{WorkbookName}/tableau-extraction.json` (produced deterministically by Stage 0) — no XML re-parsing
 - Generates report constitution at `.specify/memory/report-constitution.md`
 - Produces final report with pre-built visuals in `Output/{WorkbookName}/`
 
@@ -344,7 +345,7 @@ Every subagent call MUST use the `runSubagent` tool with these parameters:
 
 | Caller | Calls | Purpose |
 |-------|-------|---------|
-| `/migrate-tableau` prompt | `tableau-analysis` | Stage 0 — parse the TWB |
+| `/migrate-tableau` prompt | `tableau-analysis` | Stage 0 — run the deterministic extractor on the TWB |
 | `/migrate-tableau` prompt | the 9 stage agents | Stages 4–13 |
 
 ### Delegation Depth Limit (why the entry point is a prompt)
