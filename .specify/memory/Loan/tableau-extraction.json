@@ -1,0 +1,4621 @@
+{
+  "schema_version": "1.0",
+  "extractor_version": "1.0.0",
+  "source_file": "Data/Loan/Loan Portfolio Analysis.twb",
+  "workbook_name": "Loan Portfolio Analysis",
+  "data_subfolder": "Loan",
+  "suggested_output_folder_name": "Loan",
+  "workbook": {
+    "version": "18.1",
+    "original_version": "18.1",
+    "source_build": "2026.1.1 (20261.26.0410.0924)",
+    "source_platform": "win"
+  },
+  "parameters": [
+    {
+      "name": "[Parameter 1]",
+      "caption": "Top N",
+      "datatype": "integer",
+      "role": "measure",
+      "type": "quantitative",
+      "domain_type": "range",
+      "default_value": "1",
+      "default_formula": "1",
+      "format": null,
+      "range": {
+        "min": "1",
+        "max": "50",
+        "granularity": "1"
+      },
+      "members": [],
+      "aliases": [],
+      "powerbi_mapping": "What-If parameter (GENERATESERIES disconnected table)"
+    }
+  ],
+  "datasources": [
+    {
+      "name": "federated.16y2ccv0oumkec17gjd171giuxq2",
+      "caption": "loan",
+      "is_parameters": false,
+      "connections": [
+        {
+          "caption": "loan",
+          "class": "textscan",
+          "connection_type": "CSV",
+          "m_query_pattern": "Csv.Document(File.Contents(...))",
+          "filename": "loan.csv",
+          "directory": "C:/Users/AmanRajMAQSoftware/Downloads/semantic model generation v2/semantic model generation v2/Data/Loan/Loan Portfolio Analysis.twb Files/Data/archive (1)",
+          "server": "",
+          "dbname": null,
+          "schema": null,
+          "csv_file": null
+        }
+      ],
+      "connection_types": [
+        "CSV"
+      ],
+      "m_query_patterns": [
+        "Csv.Document(File.Contents(...))"
+      ],
+      "relations_type": "table",
+      "physical_tables": [
+        {
+          "name": "loan.csv",
+          "caption": "loan.csv",
+          "table": "[loan#csv]",
+          "columns": [
+            {
+              "name": "loan_id",
+              "datatype": "integer",
+              "ordinal": 0
+            },
+            {
+              "name": "customer_id",
+              "datatype": "string",
+              "ordinal": 1
+            },
+            {
+              "name": "loan_status",
+              "datatype": "string",
+              "ordinal": 2
+            },
+            {
+              "name": "loan_amount",
+              "datatype": "real",
+              "ordinal": 3
+            },
+            {
+              "name": "state",
+              "datatype": "string",
+              "ordinal": 4
+            },
+            {
+              "name": "funded_amount",
+              "datatype": "real",
+              "ordinal": 5
+            },
+            {
+              "name": "term",
+              "datatype": "string",
+              "ordinal": 6
+            },
+            {
+              "name": "int_rate",
+              "datatype": "real",
+              "ordinal": 7
+            },
+            {
+              "name": "installment",
+              "datatype": "real",
+              "ordinal": 8
+            },
+            {
+              "name": "grade",
+              "datatype": "string",
+              "ordinal": 9
+            },
+            {
+              "name": "issue_d",
+              "datatype": "string",
+              "ordinal": 10
+            },
+            {
+              "name": "issue_date",
+              "datatype": "string",
+              "ordinal": 11
+            },
+            {
+              "name": "issue_year",
+              "datatype": "real",
+              "ordinal": 12
+            },
+            {
+              "name": "pymnt_plan",
+              "datatype": "boolean",
+              "ordinal": 13
+            },
+            {
+              "name": "type",
+              "datatype": "string",
+              "ordinal": 14
+            },
+            {
+              "name": "purpose",
+              "datatype": "string",
+              "ordinal": 15
+            },
+            {
+              "name": "description",
+              "datatype": "string",
+              "ordinal": 16
+            },
+            {
+              "name": "notes",
+              "datatype": "string",
+              "ordinal": 17
+            }
+          ]
+        }
+      ],
+      "joins": [],
+      "object_relationships": [],
+      "columns": [
+        {
+          "name": "[customer_id]",
+          "caption": "Customer Id",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[description]",
+          "caption": "Description",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[funded_amount]",
+          "caption": "Funded Amount",
+          "datatype": "real",
+          "role": "measure",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Sum",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[grade]",
+          "caption": "Grade",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[installment]",
+          "caption": "Installment",
+          "datatype": "real",
+          "role": "measure",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Sum",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[int_rate]",
+          "caption": "Int Rate",
+          "datatype": "real",
+          "role": "measure",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Sum",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[issue_d]",
+          "caption": "Issue D",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[issue_date]",
+          "caption": "Issue Date",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[issue_year]",
+          "caption": "Issue Year",
+          "datatype": "real",
+          "role": "dimension",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Sum",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[loan_amount]",
+          "caption": "Loan Amount",
+          "datatype": "real",
+          "role": "measure",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Sum",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[loan_id]",
+          "caption": "Loan Id",
+          "datatype": "integer",
+          "role": "dimension",
+          "type": "ordinal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Sum",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[loan_status]",
+          "caption": "Loan Status",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[notes]",
+          "caption": "Notes",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[purpose]",
+          "caption": "Purpose",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[pymnt_plan]",
+          "caption": "Pymnt Plan",
+          "datatype": "boolean",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[state]",
+          "caption": "State",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": "[State].[Name]",
+          "data_category": "State",
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[term]",
+          "caption": "Term",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[type]",
+          "caption": "Type",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        }
+      ],
+      "column_instances": [],
+      "sets": [],
+      "groups": [],
+      "bins": []
+    },
+    {
+      "name": "federated.106erd311glrtl1g0g3vi037m874",
+      "caption": "loan_count_by_year",
+      "is_parameters": false,
+      "connections": [
+        {
+          "caption": "loan_count_by_year",
+          "class": "textscan",
+          "connection_type": "CSV",
+          "m_query_pattern": "Csv.Document(File.Contents(...))",
+          "filename": "loan_count_by_year.csv",
+          "directory": "C:/Users/AmanRajMAQSoftware/Downloads/semantic model generation v2/semantic model generation v2/Data/Loan/Loan Portfolio Analysis.twb Files/Data/archive (1)",
+          "server": "",
+          "dbname": null,
+          "schema": null,
+          "csv_file": null
+        }
+      ],
+      "connection_types": [
+        "CSV"
+      ],
+      "m_query_patterns": [
+        "Csv.Document(File.Contents(...))"
+      ],
+      "relations_type": "table",
+      "physical_tables": [
+        {
+          "name": "loan_count_by_year.csv",
+          "caption": "loan_count_by_year.csv",
+          "table": "[loan_count_by_year#csv]",
+          "columns": [
+            {
+              "name": "issue_year",
+              "datatype": "real",
+              "ordinal": 0
+            },
+            {
+              "name": "loan_count",
+              "datatype": "integer",
+              "ordinal": 1
+            }
+          ]
+        }
+      ],
+      "joins": [],
+      "object_relationships": [],
+      "columns": [
+        {
+          "name": "[issue_year]",
+          "caption": "Issue Year",
+          "datatype": "real",
+          "role": "dimension",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Sum",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan_count_by_year.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[loan_count]",
+          "caption": "Loan Count",
+          "datatype": "integer",
+          "role": "measure",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Sum",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan_count_by_year.csv",
+          "is_calculated": false,
+          "calculation": null
+        }
+      ],
+      "column_instances": [],
+      "sets": [],
+      "groups": [],
+      "bins": []
+    },
+    {
+      "name": "federated.1gh0fei0mocrpn13x35pv0cckbgb",
+      "caption": "loan_purposes",
+      "is_parameters": false,
+      "connections": [
+        {
+          "caption": "loan_purposes",
+          "class": "textscan",
+          "connection_type": "CSV",
+          "m_query_pattern": "Csv.Document(File.Contents(...))",
+          "filename": "loan_purposes.csv",
+          "directory": "C:/Users/AmanRajMAQSoftware/Downloads/semantic model generation v2/semantic model generation v2/Data/Loan/Loan Portfolio Analysis.twb Files/Data/archive (1)",
+          "server": "",
+          "dbname": null,
+          "schema": null,
+          "csv_file": null
+        }
+      ],
+      "connection_types": [
+        "CSV"
+      ],
+      "m_query_patterns": [
+        "Csv.Document(File.Contents(...))"
+      ],
+      "relations_type": "table",
+      "physical_tables": [
+        {
+          "name": "loan_purposes.csv",
+          "caption": "loan_purposes.csv",
+          "table": "[loan_purposes#csv]",
+          "columns": [
+            {
+              "name": "purpose",
+              "datatype": "string",
+              "ordinal": 0
+            }
+          ]
+        }
+      ],
+      "joins": [],
+      "object_relationships": [],
+      "columns": [
+        {
+          "name": "[purpose]",
+          "caption": "Purpose",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan_purposes.csv",
+          "is_calculated": false,
+          "calculation": null
+        }
+      ],
+      "column_instances": [],
+      "sets": [],
+      "groups": [],
+      "bins": []
+    },
+    {
+      "name": "federated.0qx98441urz5j9129rdi117nloz4",
+      "caption": "loan_with_region",
+      "is_parameters": false,
+      "connections": [
+        {
+          "caption": "loan_with_region",
+          "class": "textscan",
+          "connection_type": "CSV",
+          "m_query_pattern": "Csv.Document(File.Contents(...))",
+          "filename": "loan_with_region.csv",
+          "directory": "C:/Users/AmanRajMAQSoftware/Downloads/semantic model generation v2/semantic model generation v2/Data/Loan/Loan Portfolio Analysis.twb Files/Data/archive (1)",
+          "server": "",
+          "dbname": null,
+          "schema": null,
+          "csv_file": null
+        }
+      ],
+      "connection_types": [
+        "CSV"
+      ],
+      "m_query_patterns": [
+        "Csv.Document(File.Contents(...))"
+      ],
+      "relations_type": "table",
+      "physical_tables": [
+        {
+          "name": "loan_with_region.csv",
+          "caption": "loan_with_region.csv",
+          "table": "[loan_with_region#csv]",
+          "columns": [
+            {
+              "name": "loan_id",
+              "datatype": "integer",
+              "ordinal": 0
+            },
+            {
+              "name": "loan_amount",
+              "datatype": "real",
+              "ordinal": 1
+            },
+            {
+              "name": "region",
+              "datatype": "string",
+              "ordinal": 2
+            }
+          ]
+        }
+      ],
+      "joins": [],
+      "object_relationships": [],
+      "columns": [
+        {
+          "name": "[loan_amount]",
+          "caption": "Loan Amount",
+          "datatype": "real",
+          "role": "measure",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Sum",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan_with_region.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[loan_id]",
+          "caption": "Loan Id",
+          "datatype": "integer",
+          "role": "dimension",
+          "type": "ordinal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Sum",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan_with_region.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[region]",
+          "caption": "Region",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan_with_region.csv",
+          "is_calculated": false,
+          "calculation": null
+        }
+      ],
+      "column_instances": [],
+      "sets": [],
+      "groups": [],
+      "bins": []
+    },
+    {
+      "name": "federated.02h1jrq1n99lvz16ue4dl0fyyj5n",
+      "caption": "state_region",
+      "is_parameters": false,
+      "connections": [
+        {
+          "caption": "state_region",
+          "class": "textscan",
+          "connection_type": "CSV",
+          "m_query_pattern": "Csv.Document(File.Contents(...))",
+          "filename": "state_region.csv",
+          "directory": "C:/Users/AmanRajMAQSoftware/Downloads/semantic model generation v2/semantic model generation v2/Data/Loan/Loan Portfolio Analysis.twb Files/Data/archive (1)",
+          "server": "",
+          "dbname": null,
+          "schema": null,
+          "csv_file": null
+        }
+      ],
+      "connection_types": [
+        "CSV"
+      ],
+      "m_query_patterns": [
+        "Csv.Document(File.Contents(...))"
+      ],
+      "relations_type": "table",
+      "physical_tables": [
+        {
+          "name": "state_region.csv",
+          "caption": "state_region.csv",
+          "table": "[state_region#csv]",
+          "columns": [
+            {
+              "name": "state",
+              "datatype": "string",
+              "ordinal": 0
+            },
+            {
+              "name": "subregion",
+              "datatype": "string",
+              "ordinal": 1
+            },
+            {
+              "name": "region",
+              "datatype": "string",
+              "ordinal": 2
+            }
+          ]
+        }
+      ],
+      "joins": [],
+      "object_relationships": [],
+      "columns": [
+        {
+          "name": "[Calculation_1872509957402626]",
+          "caption": "Averag Interest Rate",
+          "datatype": "real",
+          "role": "measure",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": null,
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": null,
+          "is_calculated": true,
+          "calculation": {
+            "class": "tableau",
+            "formula": "(SUM([federated.18e8p121a6tl721befxy016u4rxt].[int_rate]))",
+            "table_calc": null
+          }
+        },
+        {
+          "name": "[region]",
+          "caption": "Region",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "state_region.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[state]",
+          "caption": "State",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": "[State].[Name]",
+          "data_category": "State",
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "state_region.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[subregion]",
+          "caption": "Subregion",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "state_region.csv",
+          "is_calculated": false,
+          "calculation": null
+        }
+      ],
+      "column_instances": [],
+      "sets": [],
+      "groups": [],
+      "bins": []
+    },
+    {
+      "name": "federated.18e8p121a6tl721befxy016u4rxt",
+      "caption": "customer",
+      "is_parameters": false,
+      "connections": [
+        {
+          "caption": "customer",
+          "class": "textscan",
+          "connection_type": "CSV",
+          "m_query_pattern": "Csv.Document(File.Contents(...))",
+          "filename": "customer.csv",
+          "directory": "C:/Users/AmanRajMAQSoftware/Downloads/semantic model generation v2/semantic model generation v2/Data/Loan",
+          "server": "",
+          "dbname": null,
+          "schema": null,
+          "csv_file": null
+        }
+      ],
+      "connection_types": [
+        "CSV"
+      ],
+      "m_query_patterns": [
+        "Csv.Document(File.Contents(...))"
+      ],
+      "relations_type": "collection",
+      "physical_tables": [
+        {
+          "name": "loan.csv",
+          "caption": "loan.csv",
+          "table": "[loan#csv]",
+          "columns": [
+            {
+              "name": "loan_id",
+              "datatype": "integer",
+              "ordinal": 0
+            },
+            {
+              "name": "customer_id",
+              "datatype": "string",
+              "ordinal": 1
+            },
+            {
+              "name": "loan_status",
+              "datatype": "string",
+              "ordinal": 2
+            },
+            {
+              "name": "loan_amount",
+              "datatype": "real",
+              "ordinal": 3
+            },
+            {
+              "name": "state",
+              "datatype": "string",
+              "ordinal": 4
+            },
+            {
+              "name": "funded_amount",
+              "datatype": "real",
+              "ordinal": 5
+            },
+            {
+              "name": "term",
+              "datatype": "string",
+              "ordinal": 6
+            },
+            {
+              "name": "int_rate",
+              "datatype": "real",
+              "ordinal": 7
+            },
+            {
+              "name": "installment",
+              "datatype": "real",
+              "ordinal": 8
+            },
+            {
+              "name": "grade",
+              "datatype": "string",
+              "ordinal": 9
+            },
+            {
+              "name": "issue_d",
+              "datatype": "string",
+              "ordinal": 10
+            },
+            {
+              "name": "issue_date",
+              "datatype": "string",
+              "ordinal": 11
+            },
+            {
+              "name": "issue_year",
+              "datatype": "real",
+              "ordinal": 12
+            },
+            {
+              "name": "pymnt_plan",
+              "datatype": "boolean",
+              "ordinal": 13
+            },
+            {
+              "name": "type",
+              "datatype": "string",
+              "ordinal": 14
+            },
+            {
+              "name": "purpose",
+              "datatype": "string",
+              "ordinal": 15
+            },
+            {
+              "name": "description",
+              "datatype": "string",
+              "ordinal": 16
+            },
+            {
+              "name": "notes",
+              "datatype": "string",
+              "ordinal": 17
+            }
+          ]
+        },
+        {
+          "name": "customer.csv",
+          "caption": "customer.csv",
+          "table": "[customer#csv]",
+          "columns": [
+            {
+              "name": "customer_id",
+              "datatype": "string",
+              "ordinal": 0
+            },
+            {
+              "name": "emp_title",
+              "datatype": "string",
+              "ordinal": 1
+            },
+            {
+              "name": "emp_length",
+              "datatype": "string",
+              "ordinal": 2
+            },
+            {
+              "name": "home_ownership",
+              "datatype": "string",
+              "ordinal": 3
+            },
+            {
+              "name": "annual_inc",
+              "datatype": "real",
+              "ordinal": 4
+            },
+            {
+              "name": "annual_inc_joint",
+              "datatype": "real",
+              "ordinal": 5
+            },
+            {
+              "name": "verification_status",
+              "datatype": "string",
+              "ordinal": 6
+            },
+            {
+              "name": "zip_code",
+              "datatype": "string",
+              "ordinal": 7
+            },
+            {
+              "name": "addr_state",
+              "datatype": "string",
+              "ordinal": 8
+            },
+            {
+              "name": "avg_cur_bal",
+              "datatype": "real",
+              "ordinal": 9
+            },
+            {
+              "name": "Tot_cur_bal",
+              "datatype": "real",
+              "ordinal": 10
+            }
+          ]
+        },
+        {
+          "name": "loan_purposes.csv",
+          "caption": "loan_purposes.csv",
+          "table": "[loan_purposes#csv]",
+          "columns": [
+            {
+              "name": "purpose",
+              "datatype": "string",
+              "ordinal": 0
+            }
+          ]
+        },
+        {
+          "name": "state_region.csv",
+          "caption": "state_region.csv",
+          "table": "[state_region#csv]",
+          "columns": [
+            {
+              "name": "state",
+              "datatype": "string",
+              "ordinal": 0
+            },
+            {
+              "name": "subregion",
+              "datatype": "string",
+              "ordinal": 1
+            },
+            {
+              "name": "region",
+              "datatype": "string",
+              "ordinal": 2
+            }
+          ]
+        }
+      ],
+      "joins": [],
+      "object_relationships": [
+        {
+          "left_table": "loan.csv",
+          "left_column": "customer_id",
+          "right_table": "customer.csv",
+          "right_column": "customer_id",
+          "operator": "="
+        },
+        {
+          "left_table": "loan.csv",
+          "left_column": "purpose",
+          "right_table": "loan_purposes.csv",
+          "right_column": "purpose",
+          "operator": "="
+        },
+        {
+          "left_table": "loan.csv",
+          "left_column": "state",
+          "right_table": "state_region.csv",
+          "right_column": "state",
+          "operator": "="
+        }
+      ],
+      "columns": [
+        {
+          "name": "[Calculation_1872509954945024]",
+          "caption": "Total Loans",
+          "datatype": "integer",
+          "role": "measure",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": null,
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": null,
+          "is_calculated": true,
+          "calculation": {
+            "class": "tableau",
+            "formula": "COUNT([loan_id])",
+            "table_calc": null
+          }
+        },
+        {
+          "name": "[Calculation_1872509955170305]",
+          "caption": "Total Funded Amount",
+          "datatype": "real",
+          "role": "measure",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": null,
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": null,
+          "is_calculated": true,
+          "calculation": {
+            "class": "tableau",
+            "formula": "SUM([loan_amount])",
+            "table_calc": null
+          }
+        },
+        {
+          "name": "[Calculation_1872509959208964]",
+          "caption": "Default Flag",
+          "datatype": "integer",
+          "role": "measure",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": null,
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": null,
+          "is_calculated": true,
+          "calculation": {
+            "class": "tableau",
+            "formula": "IF [loan_status] = \"Charged Off\" THEN 1 ELSE 0 END",
+            "table_calc": null
+          }
+        },
+        {
+          "name": "[Calculation_1872509959417861]",
+          "caption": "Default Rate",
+          "datatype": "real",
+          "role": "measure",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": null,
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": null,
+          "is_calculated": true,
+          "calculation": {
+            "class": "tableau",
+            "formula": "SUM([Calculation_1872509959208964]) / COUNT([loan_id])",
+            "table_calc": null
+          }
+        },
+        {
+          "name": "[Calculation_1872509959573510]",
+          "caption": "Default Risk Category",
+          "datatype": "string",
+          "role": "measure",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": null,
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": null,
+          "is_calculated": true,
+          "calculation": {
+            "class": "tableau",
+            "formula": "IF [Calculation_1872509959417861] > 0.20 THEN \"High Risk\"\nELSE \"Safe\"\nEND",
+            "table_calc": null
+          }
+        },
+        {
+          "name": "[Calculation_1872509966282760]",
+          "caption": "YoY Growth %",
+          "datatype": "real",
+          "role": "measure",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": null,
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": null,
+          "is_calculated": true,
+          "calculation": {
+            "class": "tableau",
+            "formula": "(COUNT([loan_id]) - LOOKUP(COUNT([loan_id]), -1))\n/\nLOOKUP(COUNT([loan_id]), -1)",
+            "table_calc": {
+              "ordering_type": "Field",
+              "ordering_field": "[federated.18e8p121a6tl721befxy016u4rxt].[issue_year]"
+            }
+          }
+        },
+        {
+          "name": "[Calculation_1872509966647305]",
+          "caption": "Highlight Peak Year",
+          "datatype": "string",
+          "role": "measure",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": null,
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": null,
+          "is_calculated": true,
+          "calculation": {
+            "class": "tableau",
+            "formula": "IF COUNT([loan_id]) = WINDOW_MAX(COUNT([loan_id]))\nTHEN \"Peak\"\nELSE \"Normal\"\nEND",
+            "table_calc": {
+              "ordering_type": "Rows",
+              "ordering_field": null
+            }
+          }
+        },
+        {
+          "name": "[Calculation_1872509972021258]",
+          "caption": "State Rank",
+          "datatype": "integer",
+          "role": "measure",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": null,
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": null,
+          "is_calculated": true,
+          "calculation": {
+            "class": "tableau",
+            "formula": "RANK(SUM([loan_amount]), 'desc')",
+            "table_calc": {
+              "ordering_type": "Field",
+              "ordering_field": "[federated.18e8p121a6tl721befxy016u4rxt].[state]"
+            }
+          }
+        },
+        {
+          "name": "[Calculation_1872509973000203]",
+          "caption": "Top N Filter",
+          "datatype": "boolean",
+          "role": "measure",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": null,
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": null,
+          "is_calculated": true,
+          "calculation": {
+            "class": "tableau",
+            "formula": "INDEX() <= [Parameters].[Parameter 1]",
+            "table_calc": {
+              "ordering_type": "Rows",
+              "ordering_field": null
+            }
+          }
+        },
+        {
+          "name": "[Tot_cur_bal]",
+          "caption": "Tot cur bal",
+          "datatype": "real",
+          "role": "measure",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Sum",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "customer.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[addr_state]",
+          "caption": "Addr State",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": "[State].[Name]",
+          "data_category": "State",
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "customer.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[annual_inc]",
+          "caption": "Annual Inc",
+          "datatype": "real",
+          "role": "measure",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Sum",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "customer.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[annual_inc_joint]",
+          "caption": "Annual Inc Joint",
+          "datatype": "real",
+          "role": "measure",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Sum",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "customer.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[avg_cur_bal]",
+          "caption": "Avg Cur Bal",
+          "datatype": "real",
+          "role": "measure",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Sum",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "customer.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[customer_id (customer.csv)]",
+          "caption": "Customer Id (Customer.Csv)",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "customer.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[customer_id]",
+          "caption": "Customer Id",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[description]",
+          "caption": "Description",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[emp_length]",
+          "caption": "Emp Length",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "customer.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[emp_title]",
+          "caption": "Emp Title",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "customer.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[funded_amount]",
+          "caption": "Funded Amount",
+          "datatype": "real",
+          "role": "measure",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Sum",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[grade]",
+          "caption": "Grade",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[home_ownership]",
+          "caption": "Home Ownership",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "customer.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[installment]",
+          "caption": "Installment",
+          "datatype": "real",
+          "role": "measure",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Sum",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[int_rate]",
+          "caption": "Int Rate",
+          "datatype": "real",
+          "role": "measure",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Sum",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[issue_d]",
+          "caption": "Issue D",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[issue_date]",
+          "caption": "Issue Date",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[issue_year]",
+          "caption": "Issue Year",
+          "datatype": "real",
+          "role": "dimension",
+          "type": "ordinal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Sum",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[loan_amount]",
+          "caption": "Loan Amount",
+          "datatype": "real",
+          "role": "measure",
+          "type": "quantitative",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Sum",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[loan_id]",
+          "caption": "Loan Id",
+          "datatype": "integer",
+          "role": "dimension",
+          "type": "ordinal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Sum",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[loan_status]",
+          "caption": "Loan Status",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[notes]",
+          "caption": "Notes",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[purpose (loan_purposes.csv)]",
+          "caption": "Purpose (Loan Purposes.Csv)",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan_purposes.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[purpose]",
+          "caption": "Purpose",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[pymnt_plan]",
+          "caption": "Pymnt Plan",
+          "datatype": "boolean",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[region]",
+          "caption": "Region",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "state_region.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[state (state_region.csv)]",
+          "caption": "State (State Region.Csv)",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": "[State].[Name]",
+          "data_category": "State",
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "state_region.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[state]",
+          "caption": "State",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": "[State].[Name]",
+          "data_category": "State",
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[subregion]",
+          "caption": "Subregion",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "state_region.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[term]",
+          "caption": "Term",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[type]",
+          "caption": "Type",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "loan.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[verification_status]",
+          "caption": "Verification Status",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": null,
+          "data_category": null,
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "customer.csv",
+          "is_calculated": false,
+          "calculation": null
+        },
+        {
+          "name": "[zip_code]",
+          "caption": "Zip Code",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "semantic_role": "[ZipCode].[Name]",
+          "data_category": "ZipCode",
+          "aggregation": "Count",
+          "format": null,
+          "powerbi_format": null,
+          "format_kind": null,
+          "hidden": false,
+          "physical_table": "customer.csv",
+          "is_calculated": false,
+          "calculation": null
+        }
+      ],
+      "column_instances": [
+        {
+          "name": "[none:term:nk]",
+          "column": "[term]",
+          "derivation": "None",
+          "type": "nominal",
+          "pivot": "key"
+        },
+        {
+          "name": "[usr:Calculation_1872509966647305:nk]",
+          "column": "[Calculation_1872509966647305]",
+          "derivation": "User",
+          "type": "nominal",
+          "pivot": "key"
+        }
+      ],
+      "sets": [],
+      "groups": [],
+      "bins": []
+    }
+  ],
+  "fields": {
+    "dimensions": [
+      {
+        "name": "[customer_id]",
+        "caption": "Customer Id",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[description]",
+        "caption": "Description",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[grade]",
+        "caption": "Grade",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[issue_d]",
+        "caption": "Issue D",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[issue_date]",
+        "caption": "Issue Date",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[issue_year]",
+        "caption": "Issue Year",
+        "datatype": "real",
+        "role": "dimension",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Sum",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[loan_id]",
+        "caption": "Loan Id",
+        "datatype": "integer",
+        "role": "dimension",
+        "type": "ordinal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Sum",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[loan_status]",
+        "caption": "Loan Status",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[notes]",
+        "caption": "Notes",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[purpose]",
+        "caption": "Purpose",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[pymnt_plan]",
+        "caption": "Pymnt Plan",
+        "datatype": "boolean",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[state]",
+        "caption": "State",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": "[State].[Name]",
+        "data_category": "State",
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[term]",
+        "caption": "Term",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[type]",
+        "caption": "Type",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[issue_year]",
+        "caption": "Issue Year",
+        "datatype": "real",
+        "role": "dimension",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Sum",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan_count_by_year.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[purpose]",
+        "caption": "Purpose",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan_purposes.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[loan_id]",
+        "caption": "Loan Id",
+        "datatype": "integer",
+        "role": "dimension",
+        "type": "ordinal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Sum",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan_with_region.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[region]",
+        "caption": "Region",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan_with_region.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[region]",
+        "caption": "Region",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "state_region.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[state]",
+        "caption": "State",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": "[State].[Name]",
+        "data_category": "State",
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "state_region.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[subregion]",
+        "caption": "Subregion",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "state_region.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[addr_state]",
+        "caption": "Addr State",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": "[State].[Name]",
+        "data_category": "State",
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "customer.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[customer_id (customer.csv)]",
+        "caption": "Customer Id (Customer.Csv)",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "customer.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[customer_id]",
+        "caption": "Customer Id",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[description]",
+        "caption": "Description",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[emp_length]",
+        "caption": "Emp Length",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "customer.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[emp_title]",
+        "caption": "Emp Title",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "customer.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[grade]",
+        "caption": "Grade",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[home_ownership]",
+        "caption": "Home Ownership",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "customer.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[issue_d]",
+        "caption": "Issue D",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[issue_date]",
+        "caption": "Issue Date",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[issue_year]",
+        "caption": "Issue Year",
+        "datatype": "real",
+        "role": "dimension",
+        "type": "ordinal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Sum",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[loan_id]",
+        "caption": "Loan Id",
+        "datatype": "integer",
+        "role": "dimension",
+        "type": "ordinal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Sum",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[loan_status]",
+        "caption": "Loan Status",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[notes]",
+        "caption": "Notes",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[purpose (loan_purposes.csv)]",
+        "caption": "Purpose (Loan Purposes.Csv)",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan_purposes.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[purpose]",
+        "caption": "Purpose",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[pymnt_plan]",
+        "caption": "Pymnt Plan",
+        "datatype": "boolean",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[region]",
+        "caption": "Region",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "state_region.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[state (state_region.csv)]",
+        "caption": "State (State Region.Csv)",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": "[State].[Name]",
+        "data_category": "State",
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "state_region.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[state]",
+        "caption": "State",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": "[State].[Name]",
+        "data_category": "State",
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[subregion]",
+        "caption": "Subregion",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "state_region.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[term]",
+        "caption": "Term",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[type]",
+        "caption": "Type",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[verification_status]",
+        "caption": "Verification Status",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "customer.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[zip_code]",
+        "caption": "Zip Code",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "semantic_role": "[ZipCode].[Name]",
+        "data_category": "ZipCode",
+        "aggregation": "Count",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "customer.csv",
+        "is_calculated": false,
+        "calculation": null
+      }
+    ],
+    "measures": [
+      {
+        "name": "[funded_amount]",
+        "caption": "Funded Amount",
+        "datatype": "real",
+        "role": "measure",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Sum",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[installment]",
+        "caption": "Installment",
+        "datatype": "real",
+        "role": "measure",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Sum",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[int_rate]",
+        "caption": "Int Rate",
+        "datatype": "real",
+        "role": "measure",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Sum",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[loan_amount]",
+        "caption": "Loan Amount",
+        "datatype": "real",
+        "role": "measure",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Sum",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[loan_count]",
+        "caption": "Loan Count",
+        "datatype": "integer",
+        "role": "measure",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Sum",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan_count_by_year.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[loan_amount]",
+        "caption": "Loan Amount",
+        "datatype": "real",
+        "role": "measure",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Sum",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan_with_region.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[Tot_cur_bal]",
+        "caption": "Tot cur bal",
+        "datatype": "real",
+        "role": "measure",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Sum",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "customer.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[annual_inc]",
+        "caption": "Annual Inc",
+        "datatype": "real",
+        "role": "measure",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Sum",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "customer.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[annual_inc_joint]",
+        "caption": "Annual Inc Joint",
+        "datatype": "real",
+        "role": "measure",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Sum",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "customer.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[avg_cur_bal]",
+        "caption": "Avg Cur Bal",
+        "datatype": "real",
+        "role": "measure",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Sum",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "customer.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[funded_amount]",
+        "caption": "Funded Amount",
+        "datatype": "real",
+        "role": "measure",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Sum",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[installment]",
+        "caption": "Installment",
+        "datatype": "real",
+        "role": "measure",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Sum",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[int_rate]",
+        "caption": "Int Rate",
+        "datatype": "real",
+        "role": "measure",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Sum",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      },
+      {
+        "name": "[loan_amount]",
+        "caption": "Loan Amount",
+        "datatype": "real",
+        "role": "measure",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": "Sum",
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": "loan.csv",
+        "is_calculated": false,
+        "calculation": null
+      }
+    ],
+    "calculated_fields": [
+      {
+        "name": "[Calculation_1872509957402626]",
+        "caption": "Averag Interest Rate",
+        "datatype": "real",
+        "role": "measure",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": null,
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": null,
+        "is_calculated": true,
+        "calculation": {
+          "class": "tableau",
+          "formula": "(SUM([federated.18e8p121a6tl721befxy016u4rxt].[int_rate]))",
+          "table_calc": null
+        }
+      },
+      {
+        "name": "[Calculation_1872509954945024]",
+        "caption": "Total Loans",
+        "datatype": "integer",
+        "role": "measure",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": null,
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": null,
+        "is_calculated": true,
+        "calculation": {
+          "class": "tableau",
+          "formula": "COUNT([loan_id])",
+          "table_calc": null
+        }
+      },
+      {
+        "name": "[Calculation_1872509955170305]",
+        "caption": "Total Funded Amount",
+        "datatype": "real",
+        "role": "measure",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": null,
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": null,
+        "is_calculated": true,
+        "calculation": {
+          "class": "tableau",
+          "formula": "SUM([loan_amount])",
+          "table_calc": null
+        }
+      },
+      {
+        "name": "[Calculation_1872509959208964]",
+        "caption": "Default Flag",
+        "datatype": "integer",
+        "role": "measure",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": null,
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": null,
+        "is_calculated": true,
+        "calculation": {
+          "class": "tableau",
+          "formula": "IF [loan_status] = \"Charged Off\" THEN 1 ELSE 0 END",
+          "table_calc": null
+        }
+      },
+      {
+        "name": "[Calculation_1872509959417861]",
+        "caption": "Default Rate",
+        "datatype": "real",
+        "role": "measure",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": null,
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": null,
+        "is_calculated": true,
+        "calculation": {
+          "class": "tableau",
+          "formula": "SUM([Calculation_1872509959208964]) / COUNT([loan_id])",
+          "table_calc": null
+        }
+      },
+      {
+        "name": "[Calculation_1872509959573510]",
+        "caption": "Default Risk Category",
+        "datatype": "string",
+        "role": "measure",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": null,
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": null,
+        "is_calculated": true,
+        "calculation": {
+          "class": "tableau",
+          "formula": "IF [Calculation_1872509959417861] > 0.20 THEN \"High Risk\"\nELSE \"Safe\"\nEND",
+          "table_calc": null
+        }
+      },
+      {
+        "name": "[Calculation_1872509966282760]",
+        "caption": "YoY Growth %",
+        "datatype": "real",
+        "role": "measure",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": null,
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": null,
+        "is_calculated": true,
+        "calculation": {
+          "class": "tableau",
+          "formula": "(COUNT([loan_id]) - LOOKUP(COUNT([loan_id]), -1))\n/\nLOOKUP(COUNT([loan_id]), -1)",
+          "table_calc": {
+            "ordering_type": "Field",
+            "ordering_field": "[federated.18e8p121a6tl721befxy016u4rxt].[issue_year]"
+          }
+        }
+      },
+      {
+        "name": "[Calculation_1872509966647305]",
+        "caption": "Highlight Peak Year",
+        "datatype": "string",
+        "role": "measure",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": null,
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": null,
+        "is_calculated": true,
+        "calculation": {
+          "class": "tableau",
+          "formula": "IF COUNT([loan_id]) = WINDOW_MAX(COUNT([loan_id]))\nTHEN \"Peak\"\nELSE \"Normal\"\nEND",
+          "table_calc": {
+            "ordering_type": "Rows",
+            "ordering_field": null
+          }
+        }
+      },
+      {
+        "name": "[Calculation_1872509972021258]",
+        "caption": "State Rank",
+        "datatype": "integer",
+        "role": "measure",
+        "type": "quantitative",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": null,
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": null,
+        "is_calculated": true,
+        "calculation": {
+          "class": "tableau",
+          "formula": "RANK(SUM([loan_amount]), 'desc')",
+          "table_calc": {
+            "ordering_type": "Field",
+            "ordering_field": "[federated.18e8p121a6tl721befxy016u4rxt].[state]"
+          }
+        }
+      },
+      {
+        "name": "[Calculation_1872509973000203]",
+        "caption": "Top N Filter",
+        "datatype": "boolean",
+        "role": "measure",
+        "type": "nominal",
+        "semantic_role": null,
+        "data_category": null,
+        "aggregation": null,
+        "format": null,
+        "powerbi_format": null,
+        "format_kind": null,
+        "hidden": false,
+        "physical_table": null,
+        "is_calculated": true,
+        "calculation": {
+          "class": "tableau",
+          "formula": "INDEX() <= [Parameters].[Parameter 1]",
+          "table_calc": {
+            "ordering_type": "Rows",
+            "ordering_field": null
+          }
+        }
+      }
+    ]
+  },
+  "worksheets": [
+    {
+      "name": "Avg Interest Rate",
+      "title": null,
+      "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+      "mark_type": "Automatic",
+      "all_marks": [
+        "Automatic"
+      ],
+      "inferred_powerbi_visual": "card",
+      "rows": [],
+      "cols": [],
+      "hierarchy": null,
+      "encodings": {
+        "color": null,
+        "size": null,
+        "text": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[avg:int_rate:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "Average",
+          "date_part": null,
+          "field": "int_rate",
+          "is_generated": false,
+          "caption": "Int Rate"
+        },
+        "label": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[avg:int_rate:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "Average",
+          "date_part": null,
+          "field": "int_rate",
+          "is_generated": false,
+          "caption": "Int Rate"
+        },
+        "wedge_size": null,
+        "detail": null,
+        "lod": null,
+        "shape": null,
+        "geometry": null,
+        "angle": null,
+        "path": null
+      },
+      "filters": [],
+      "top_n": null,
+      "dual_axis": null,
+      "reference_lines": [],
+      "referenced_fields": [
+        "Calculation_1872509959208964",
+        "Calculation_1872509959417861",
+        "Calculation_1872509959573510",
+        "grade",
+        "int_rate",
+        "issue_year",
+        "loan_id",
+        "loan_status",
+        "purpose"
+      ],
+      "referenced_calculations": [
+        {
+          "name": "[Calculation_1872509959208964]",
+          "caption": "Default Flag",
+          "formula": "IF [loan_status] = \"Charged Off\" THEN 1 ELSE 0 END"
+        },
+        {
+          "name": "[Calculation_1872509959417861]",
+          "caption": "Default Rate",
+          "formula": "SUM([Calculation_1872509959208964]) / COUNT([loan_id])"
+        },
+        {
+          "name": "[Calculation_1872509959573510]",
+          "caption": "Default Risk Category",
+          "formula": "IF [Calculation_1872509959417861] > 0.20 THEN \"High Risk\"\nELSE \"Safe\"\nEND"
+        }
+      ],
+      "color_encoding": null,
+      "style": {
+        "cell.width": "1298",
+        "cell.height": "174",
+        "cell.text-format": "p0.00%",
+        "cell.text-align": "center",
+        "quick-filter-title.text-align": "left"
+      }
+    },
+    {
+      "name": "Default Rate",
+      "title": null,
+      "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+      "mark_type": "Automatic",
+      "all_marks": [
+        "Automatic"
+      ],
+      "inferred_powerbi_visual": "card",
+      "rows": [],
+      "cols": [],
+      "hierarchy": null,
+      "encodings": {
+        "color": null,
+        "size": null,
+        "text": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[usr:Calculation_1872509959417861:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "User",
+          "date_part": null,
+          "field": "Calculation_1872509959417861",
+          "is_generated": false,
+          "caption": "Default Rate"
+        },
+        "label": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[usr:Calculation_1872509959417861:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "User",
+          "date_part": null,
+          "field": "Calculation_1872509959417861",
+          "is_generated": false,
+          "caption": "Default Rate"
+        },
+        "wedge_size": null,
+        "detail": null,
+        "lod": null,
+        "shape": null,
+        "geometry": null,
+        "angle": null,
+        "path": null
+      },
+      "filters": [],
+      "top_n": null,
+      "dual_axis": null,
+      "reference_lines": [],
+      "referenced_fields": [
+        "Calculation_1872509959208964",
+        "Calculation_1872509959417861",
+        "Calculation_1872509959573510",
+        "grade",
+        "issue_year",
+        "loan_id",
+        "loan_status",
+        "purpose"
+      ],
+      "referenced_calculations": [
+        {
+          "name": "[Calculation_1872509959208964]",
+          "caption": "Default Flag",
+          "formula": "IF [loan_status] = \"Charged Off\" THEN 1 ELSE 0 END"
+        },
+        {
+          "name": "[Calculation_1872509959417861]",
+          "caption": "Default Rate",
+          "formula": "SUM([Calculation_1872509959208964]) / COUNT([loan_id])"
+        },
+        {
+          "name": "[Calculation_1872509959573510]",
+          "caption": "Default Risk Category",
+          "formula": "IF [Calculation_1872509959417861] > 0.20 THEN \"High Risk\"\nELSE \"Safe\"\nEND"
+        }
+      ],
+      "color_encoding": null,
+      "style": {
+        "cell.width": "1086",
+        "cell.height": "175",
+        "cell.text-format": "p0.00%",
+        "cell.text-align": "center"
+      }
+    },
+    {
+      "name": "Default Rate by Grade",
+      "title": null,
+      "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+      "mark_type": "Square",
+      "all_marks": [
+        "Square"
+      ],
+      "inferred_powerbi_visual": "treemap",
+      "rows": [
+        {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[none:grade:nk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": null,
+          "date_part": null,
+          "field": "grade",
+          "is_generated": false
+        }
+      ],
+      "cols": [
+        {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[none:term:nk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": null,
+          "date_part": null,
+          "field": "term",
+          "is_generated": false
+        }
+      ],
+      "hierarchy": null,
+      "encodings": {
+        "color": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[usr:Calculation_1872509959417861:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "User",
+          "date_part": null,
+          "field": "Calculation_1872509959417861",
+          "is_generated": false,
+          "caption": "Default Rate"
+        },
+        "size": null,
+        "text": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[usr:Calculation_1872509959417861:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "User",
+          "date_part": null,
+          "field": "Calculation_1872509959417861",
+          "is_generated": false,
+          "caption": "Default Rate"
+        },
+        "label": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[usr:Calculation_1872509959417861:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "User",
+          "date_part": null,
+          "field": "Calculation_1872509959417861",
+          "is_generated": false,
+          "caption": "Default Rate"
+        },
+        "wedge_size": null,
+        "detail": null,
+        "lod": null,
+        "shape": null,
+        "geometry": null,
+        "angle": null,
+        "path": null
+      },
+      "filters": [],
+      "top_n": null,
+      "dual_axis": null,
+      "reference_lines": [],
+      "referenced_fields": [
+        "Calculation_1872509959208964",
+        "Calculation_1872509959417861",
+        "Calculation_1872509959573510",
+        "grade",
+        "issue_year",
+        "loan_id",
+        "loan_status",
+        "purpose",
+        "term"
+      ],
+      "referenced_calculations": [
+        {
+          "name": "[Calculation_1872509959208964]",
+          "caption": "Default Flag",
+          "formula": "IF [loan_status] = \"Charged Off\" THEN 1 ELSE 0 END"
+        },
+        {
+          "name": "[Calculation_1872509959417861]",
+          "caption": "Default Rate",
+          "formula": "SUM([Calculation_1872509959208964]) / COUNT([loan_id])"
+        },
+        {
+          "name": "[Calculation_1872509959573510]",
+          "caption": "Default Risk Category",
+          "formula": "IF [Calculation_1872509959417861] > 0.20 THEN \"High Risk\"\nELSE \"Safe\"\nEND"
+        }
+      ],
+      "color_encoding": null,
+      "style": {
+        "cell.height": "89",
+        "cell.width": "489"
+      }
+    },
+    {
+      "name": "Filters",
+      "title": null,
+      "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+      "mark_type": "Automatic",
+      "all_marks": [
+        "Automatic"
+      ],
+      "inferred_powerbi_visual": "card",
+      "rows": [],
+      "cols": [],
+      "hierarchy": null,
+      "encodings": {
+        "color": null,
+        "size": null,
+        "text": null,
+        "label": null,
+        "wedge_size": null,
+        "detail": null,
+        "lod": null,
+        "shape": null,
+        "geometry": null,
+        "angle": null,
+        "path": null
+      },
+      "filters": [],
+      "top_n": null,
+      "dual_axis": null,
+      "reference_lines": [],
+      "referenced_fields": [
+        "Calculation_1872509959208964",
+        "Calculation_1872509959417861",
+        "Calculation_1872509959573510",
+        "grade",
+        "issue_year",
+        "loan_id",
+        "loan_status",
+        "purpose"
+      ],
+      "referenced_calculations": [
+        {
+          "name": "[Calculation_1872509959208964]",
+          "caption": "Default Flag",
+          "formula": "IF [loan_status] = \"Charged Off\" THEN 1 ELSE 0 END"
+        },
+        {
+          "name": "[Calculation_1872509959417861]",
+          "caption": "Default Rate",
+          "formula": "SUM([Calculation_1872509959208964]) / COUNT([loan_id])"
+        },
+        {
+          "name": "[Calculation_1872509959573510]",
+          "caption": "Default Risk Category",
+          "formula": "IF [Calculation_1872509959417861] > 0.20 THEN \"High Risk\"\nELSE \"Safe\"\nEND"
+        }
+      ],
+      "color_encoding": null,
+      "style": {}
+    },
+    {
+      "name": "Loan Amount by Purpose",
+      "title": null,
+      "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+      "mark_type": "Automatic",
+      "all_marks": [
+        "Automatic"
+      ],
+      "inferred_powerbi_visual": "treemap",
+      "rows": [],
+      "cols": [],
+      "hierarchy": null,
+      "encodings": {
+        "color": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[sum:loan_amount:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "Sum",
+          "date_part": null,
+          "field": "loan_amount",
+          "is_generated": false,
+          "caption": "Loan Amount"
+        },
+        "size": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[sum:loan_amount:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "Sum",
+          "date_part": null,
+          "field": "loan_amount",
+          "is_generated": false,
+          "caption": "Loan Amount"
+        },
+        "text": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[none:purpose:nk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": null,
+          "date_part": null,
+          "field": "purpose",
+          "is_generated": false,
+          "caption": "Purpose"
+        },
+        "label": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[none:purpose:nk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": null,
+          "date_part": null,
+          "field": "purpose",
+          "is_generated": false,
+          "caption": "Purpose"
+        },
+        "wedge_size": null,
+        "detail": null,
+        "lod": null,
+        "shape": null,
+        "geometry": null,
+        "angle": null,
+        "path": null
+      },
+      "filters": [],
+      "top_n": null,
+      "dual_axis": null,
+      "reference_lines": [],
+      "referenced_fields": [
+        "Calculation_1872509959208964",
+        "Calculation_1872509959417861",
+        "Calculation_1872509959573510",
+        "grade",
+        "issue_year",
+        "loan_amount",
+        "loan_id",
+        "loan_status",
+        "purpose"
+      ],
+      "referenced_calculations": [
+        {
+          "name": "[Calculation_1872509959208964]",
+          "caption": "Default Flag",
+          "formula": "IF [loan_status] = \"Charged Off\" THEN 1 ELSE 0 END"
+        },
+        {
+          "name": "[Calculation_1872509959417861]",
+          "caption": "Default Rate",
+          "formula": "SUM([Calculation_1872509959208964]) / COUNT([loan_id])"
+        },
+        {
+          "name": "[Calculation_1872509959573510]",
+          "caption": "Default Risk Category",
+          "formula": "IF [Calculation_1872509959417861] > 0.20 THEN \"High Risk\"\nELSE \"Safe\"\nEND"
+        }
+      ],
+      "color_encoding": null,
+      "style": {
+        "cell.height": "720",
+        "cell.width": "1074"
+      }
+    },
+    {
+      "name": "Loan Status by Grade",
+      "title": null,
+      "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+      "mark_type": "Automatic",
+      "all_marks": [
+        "Automatic"
+      ],
+      "inferred_powerbi_visual": "tableEx",
+      "rows": [
+        {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[cnt:loan_id:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "Count",
+          "date_part": null,
+          "field": "loan_id",
+          "is_generated": false
+        }
+      ],
+      "cols": [
+        {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[none:grade:nk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": null,
+          "date_part": null,
+          "field": "grade",
+          "is_generated": false
+        }
+      ],
+      "hierarchy": null,
+      "encodings": {
+        "color": null,
+        "size": null,
+        "text": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[cnt:loan_id:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "Count",
+          "date_part": null,
+          "field": "loan_id",
+          "is_generated": false,
+          "caption": "Loan Id"
+        },
+        "label": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[cnt:loan_id:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "Count",
+          "date_part": null,
+          "field": "loan_id",
+          "is_generated": false,
+          "caption": "Loan Id"
+        },
+        "wedge_size": null,
+        "detail": null,
+        "lod": null,
+        "shape": null,
+        "geometry": null,
+        "angle": null,
+        "path": null
+      },
+      "filters": [],
+      "top_n": null,
+      "dual_axis": null,
+      "reference_lines": [],
+      "referenced_fields": [
+        "Calculation_1872509959208964",
+        "Calculation_1872509959417861",
+        "Calculation_1872509959573510",
+        "grade",
+        "issue_year",
+        "loan_id",
+        "loan_status",
+        "purpose"
+      ],
+      "referenced_calculations": [
+        {
+          "name": "[Calculation_1872509959208964]",
+          "caption": "Default Flag",
+          "formula": "IF [loan_status] = \"Charged Off\" THEN 1 ELSE 0 END"
+        },
+        {
+          "name": "[Calculation_1872509959417861]",
+          "caption": "Default Rate",
+          "formula": "SUM([Calculation_1872509959208964]) / COUNT([loan_id])"
+        },
+        {
+          "name": "[Calculation_1872509959573510]",
+          "caption": "Default Risk Category",
+          "formula": "IF [Calculation_1872509959417861] > 0.20 THEN \"High Risk\"\nELSE \"Safe\"\nEND"
+        }
+      ],
+      "color_encoding": null,
+      "style": {
+        "cell.width": "150",
+        "cell.text-format": "n#,##0,.00K;-#,##0,.00K",
+        "label.text-format": "n#,##0,.00K;-#,##0,.00K"
+      }
+    },
+    {
+      "name": "Loan Term Split",
+      "title": null,
+      "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+      "mark_type": "Pie",
+      "all_marks": [
+        "Pie"
+      ],
+      "inferred_powerbi_visual": "pieChart",
+      "rows": [],
+      "cols": [],
+      "hierarchy": null,
+      "encodings": {
+        "color": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[none:term:nk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": null,
+          "date_part": null,
+          "field": "term",
+          "is_generated": false,
+          "caption": "Term"
+        },
+        "size": null,
+        "text": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[pcto:cnt:loan_id:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "PercentOfTotal",
+          "date_part": null,
+          "field": "cnt:loan_id",
+          "is_generated": false,
+          "caption": "cnt:loan_id"
+        },
+        "label": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[pcto:cnt:loan_id:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "PercentOfTotal",
+          "date_part": null,
+          "field": "cnt:loan_id",
+          "is_generated": false,
+          "caption": "cnt:loan_id"
+        },
+        "wedge_size": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[cnt:loan_id:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "Count",
+          "date_part": null,
+          "field": "loan_id",
+          "is_generated": false,
+          "caption": "Loan Id"
+        },
+        "detail": null,
+        "lod": null,
+        "shape": null,
+        "geometry": null,
+        "angle": null,
+        "path": null
+      },
+      "filters": [],
+      "top_n": null,
+      "dual_axis": null,
+      "reference_lines": [],
+      "referenced_fields": [
+        "Calculation_1872509959208964",
+        "Calculation_1872509959417861",
+        "Calculation_1872509959573510",
+        "grade",
+        "issue_year",
+        "loan_id",
+        "loan_status",
+        "purpose",
+        "term"
+      ],
+      "referenced_calculations": [
+        {
+          "name": "[Calculation_1872509959208964]",
+          "caption": "Default Flag",
+          "formula": "IF [loan_status] = \"Charged Off\" THEN 1 ELSE 0 END"
+        },
+        {
+          "name": "[Calculation_1872509959417861]",
+          "caption": "Default Rate",
+          "formula": "SUM([Calculation_1872509959208964]) / COUNT([loan_id])"
+        },
+        {
+          "name": "[Calculation_1872509959573510]",
+          "caption": "Default Risk Category",
+          "formula": "IF [Calculation_1872509959417861] > 0.20 THEN \"High Risk\"\nELSE \"Safe\"\nEND"
+        }
+      ],
+      "color_encoding": null,
+      "style": {
+        "cell.height": "487",
+        "cell.width": "653"
+      }
+    },
+    {
+      "name": "Loans Issued Year Over Year",
+      "title": null,
+      "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+      "mark_type": "Line",
+      "all_marks": [
+        "Line"
+      ],
+      "inferred_powerbi_visual": "lineChart",
+      "rows": [
+        {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[cnt:loan_id:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "Count",
+          "date_part": null,
+          "field": "loan_id",
+          "is_generated": false
+        }
+      ],
+      "cols": [
+        {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[none:issue_year:ok]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": null,
+          "date_part": null,
+          "field": "issue_year",
+          "is_generated": false
+        }
+      ],
+      "hierarchy": null,
+      "encodings": {
+        "color": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[usr:Calculation_1872509966647305:nk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "User",
+          "date_part": null,
+          "field": "Calculation_1872509966647305",
+          "is_generated": false,
+          "caption": "Highlight Peak Year"
+        },
+        "size": null,
+        "text": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[usr:Calculation_1872509966282760:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "User",
+          "date_part": null,
+          "field": "Calculation_1872509966282760",
+          "is_generated": false,
+          "caption": "YoY Growth %"
+        },
+        "label": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[usr:Calculation_1872509966282760:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "User",
+          "date_part": null,
+          "field": "Calculation_1872509966282760",
+          "is_generated": false,
+          "caption": "YoY Growth %"
+        },
+        "wedge_size": null,
+        "detail": null,
+        "lod": null,
+        "shape": null,
+        "geometry": null,
+        "angle": null,
+        "path": null
+      },
+      "filters": [],
+      "top_n": null,
+      "dual_axis": null,
+      "reference_lines": [],
+      "referenced_fields": [
+        "Calculation_1872509959208964",
+        "Calculation_1872509959417861",
+        "Calculation_1872509959573510",
+        "Calculation_1872509966282760",
+        "Calculation_1872509966647305",
+        "grade",
+        "issue_year",
+        "loan_id",
+        "loan_status",
+        "purpose"
+      ],
+      "referenced_calculations": [
+        {
+          "name": "[Calculation_1872509959208964]",
+          "caption": "Default Flag",
+          "formula": "IF [loan_status] = \"Charged Off\" THEN 1 ELSE 0 END"
+        },
+        {
+          "name": "[Calculation_1872509959417861]",
+          "caption": "Default Rate",
+          "formula": "SUM([Calculation_1872509959208964]) / COUNT([loan_id])"
+        },
+        {
+          "name": "[Calculation_1872509959573510]",
+          "caption": "Default Risk Category",
+          "formula": "IF [Calculation_1872509959417861] > 0.20 THEN \"High Risk\"\nELSE \"Safe\"\nEND"
+        },
+        {
+          "name": "[Calculation_1872509966282760]",
+          "caption": "YoY Growth %",
+          "formula": "(COUNT([loan_id]) - LOOKUP(COUNT([loan_id]), -1))\n/\nLOOKUP(COUNT([loan_id]), -1)"
+        },
+        {
+          "name": "[Calculation_1872509966647305]",
+          "caption": "Highlight Peak Year",
+          "formula": "IF COUNT([loan_id]) = WINDOW_MAX(COUNT([loan_id]))\nTHEN \"Peak\"\nELSE \"Normal\"\nEND"
+        }
+      ],
+      "color_encoding": null,
+      "style": {
+        "cell.width": "131",
+        "header.height-header": "18"
+      }
+    },
+    {
+      "name": "Top 10 States by Total Loan Volume",
+      "title": null,
+      "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+      "mark_type": "Automatic",
+      "all_marks": [
+        "Automatic"
+      ],
+      "inferred_powerbi_visual": "tableEx",
+      "rows": [
+        {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[none:region:nk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": null,
+          "date_part": null,
+          "field": "region",
+          "is_generated": false
+        },
+        {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[none:subregion:nk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": null,
+          "date_part": null,
+          "field": "subregion",
+          "is_generated": false
+        },
+        {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[none:state (state_region.csv):nk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": null,
+          "date_part": null,
+          "field": "state (state_region.csv)",
+          "is_generated": false
+        }
+      ],
+      "cols": [
+        {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[sum:loan_amount:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "Sum",
+          "date_part": null,
+          "field": "loan_amount",
+          "is_generated": false
+        }
+      ],
+      "hierarchy": [
+        "region",
+        "subregion",
+        "state (state_region.csv)"
+      ],
+      "encodings": {
+        "color": null,
+        "size": null,
+        "text": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[sum:loan_amount:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "Sum",
+          "date_part": null,
+          "field": "loan_amount",
+          "is_generated": false,
+          "caption": "Loan Amount"
+        },
+        "label": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[sum:loan_amount:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "Sum",
+          "date_part": null,
+          "field": "loan_amount",
+          "is_generated": false,
+          "caption": "Loan Amount"
+        },
+        "wedge_size": null,
+        "detail": null,
+        "lod": null,
+        "shape": null,
+        "geometry": null,
+        "angle": null,
+        "path": null
+      },
+      "filters": [
+        {
+          "class": "categorical",
+          "column": "[federated.18e8p121a6tl721befxy016u4rxt].[none:region:nk]",
+          "field": "region",
+          "kind": "include_members",
+          "members": [
+            "\"Midwest\"",
+            "\"Northeast\"",
+            "\"South\"",
+            "\"West\""
+          ],
+          "top_n": {
+            "count": 10,
+            "direction": "top",
+            "by_field": true
+          },
+          "is_action_filter": false,
+          "range": null
+        },
+        {
+          "class": "categorical",
+          "column": "[federated.18e8p121a6tl721befxy016u4rxt].[none:state (state_region.csv):nk]",
+          "field": "state (state_region.csv)",
+          "kind": "all_members",
+          "members": [],
+          "top_n": {
+            "count": 10,
+            "direction": "top",
+            "by_field": true
+          },
+          "is_action_filter": false,
+          "range": null
+        },
+        {
+          "class": "categorical",
+          "column": "[federated.18e8p121a6tl721befxy016u4rxt].[none:subregion:nk]",
+          "field": "subregion",
+          "kind": "all_members",
+          "members": [],
+          "top_n": {
+            "count": 10,
+            "direction": "top",
+            "by_field": true
+          },
+          "is_action_filter": false,
+          "range": null
+        },
+        {
+          "class": "categorical",
+          "column": "[federated.18e8p121a6tl721befxy016u4rxt].[usr:Calculation_1872509973000203:nk:14]",
+          "field": "Calculation_1872509973000203:nk",
+          "kind": "all_members",
+          "members": [],
+          "top_n": null,
+          "is_action_filter": false,
+          "range": null
+        }
+      ],
+      "top_n": {
+        "count": 10,
+        "direction": "top",
+        "by_field": true
+      },
+      "dual_axis": null,
+      "reference_lines": [],
+      "referenced_fields": [
+        "Parameter 1"
+      ],
+      "referenced_calculations": [
+        {
+          "name": "[Parameter 1]",
+          "caption": "Top N",
+          "formula": "1"
+        }
+      ],
+      "color_encoding": null,
+      "style": {
+        "cell.height": "488",
+        "cell.text-format": "n#,##0,,.0M;-#,##0,,.0M",
+        "label.text-format": "c\"₹ \"#,##0,K;\"₹ \"-#,##0,K"
+      }
+    },
+    {
+      "name": "Total Funded Amount",
+      "title": null,
+      "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+      "mark_type": "Automatic",
+      "all_marks": [
+        "Automatic"
+      ],
+      "inferred_powerbi_visual": "card",
+      "rows": [],
+      "cols": [],
+      "hierarchy": null,
+      "encodings": {
+        "color": null,
+        "size": null,
+        "text": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[sum:loan_amount:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "Sum",
+          "date_part": null,
+          "field": "loan_amount",
+          "is_generated": false,
+          "caption": "Loan Amount"
+        },
+        "label": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[sum:loan_amount:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "Sum",
+          "date_part": null,
+          "field": "loan_amount",
+          "is_generated": false,
+          "caption": "Loan Amount"
+        },
+        "wedge_size": null,
+        "detail": null,
+        "lod": null,
+        "shape": null,
+        "geometry": null,
+        "angle": null,
+        "path": null
+      },
+      "filters": [],
+      "top_n": null,
+      "dual_axis": null,
+      "reference_lines": [],
+      "referenced_fields": [
+        "Calculation_1872509959208964",
+        "Calculation_1872509959417861",
+        "Calculation_1872509959573510",
+        "grade",
+        "issue_year",
+        "loan_amount",
+        "loan_id",
+        "loan_status",
+        "purpose"
+      ],
+      "referenced_calculations": [
+        {
+          "name": "[Calculation_1872509959208964]",
+          "caption": "Default Flag",
+          "formula": "IF [loan_status] = \"Charged Off\" THEN 1 ELSE 0 END"
+        },
+        {
+          "name": "[Calculation_1872509959417861]",
+          "caption": "Default Rate",
+          "formula": "SUM([Calculation_1872509959208964]) / COUNT([loan_id])"
+        },
+        {
+          "name": "[Calculation_1872509959573510]",
+          "caption": "Default Risk Category",
+          "formula": "IF [Calculation_1872509959417861] > 0.20 THEN \"High Risk\"\nELSE \"Safe\"\nEND"
+        }
+      ],
+      "color_encoding": null,
+      "style": {
+        "cell.width": "1251",
+        "cell.height": "173",
+        "cell.text-align": "center",
+        "cell.text-orientation": "0",
+        "cell.text-format": "c\"$\"#,##0,,M"
+      }
+    },
+    {
+      "name": "Total Loans",
+      "title": null,
+      "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+      "mark_type": "Automatic",
+      "all_marks": [
+        "Automatic"
+      ],
+      "inferred_powerbi_visual": "card",
+      "rows": [],
+      "cols": [],
+      "hierarchy": null,
+      "encodings": {
+        "color": null,
+        "size": null,
+        "text": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[cnt:loan_id:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "Count",
+          "date_part": null,
+          "field": "loan_id",
+          "is_generated": false,
+          "caption": "Loan Id"
+        },
+        "label": {
+          "raw": "[federated.18e8p121a6tl721befxy016u4rxt].[cnt:loan_id:qk]",
+          "datasource": "federated.18e8p121a6tl721befxy016u4rxt",
+          "aggregation": "Count",
+          "date_part": null,
+          "field": "loan_id",
+          "is_generated": false,
+          "caption": "Loan Id"
+        },
+        "wedge_size": null,
+        "detail": null,
+        "lod": null,
+        "shape": null,
+        "geometry": null,
+        "angle": null,
+        "path": null
+      },
+      "filters": [],
+      "top_n": null,
+      "dual_axis": null,
+      "reference_lines": [],
+      "referenced_fields": [
+        "Calculation_1872509959208964",
+        "Calculation_1872509959417861",
+        "Calculation_1872509959573510",
+        "grade",
+        "issue_year",
+        "loan_id",
+        "loan_status",
+        "purpose"
+      ],
+      "referenced_calculations": [
+        {
+          "name": "[Calculation_1872509959208964]",
+          "caption": "Default Flag",
+          "formula": "IF [loan_status] = \"Charged Off\" THEN 1 ELSE 0 END"
+        },
+        {
+          "name": "[Calculation_1872509959417861]",
+          "caption": "Default Rate",
+          "formula": "SUM([Calculation_1872509959208964]) / COUNT([loan_id])"
+        },
+        {
+          "name": "[Calculation_1872509959573510]",
+          "caption": "Default Risk Category",
+          "formula": "IF [Calculation_1872509959417861] > 0.20 THEN \"High Risk\"\nELSE \"Safe\"\nEND"
+        }
+      ],
+      "color_encoding": null,
+      "style": {
+        "cell.height": "226",
+        "cell.width": "1291",
+        "cell.text-align": "center",
+        "cell.text-format": "c#,##0,K"
+      }
+    }
+  ],
+  "dashboards": [
+    {
+      "name": "Loan Portfolio Overview & Risk Analysis ",
+      "size": {
+        "width": 1550,
+        "height": 1600,
+        "min_width": 1550,
+        "min_height": 1600,
+        "sizing_mode": "fixed"
+      },
+      "style": {},
+      "visuals": [
+        {
+          "id": "3",
+          "worksheet": "Total Loans",
+          "position": {
+            "x": 516,
+            "y": 8653,
+            "w": 26778,
+            "h": 10555,
+            "x_px": 8.0,
+            "y_px": 138.4,
+            "w_px": 415.1,
+            "h_px": 168.9
+          }
+        },
+        {
+          "id": "5",
+          "worksheet": "Total Funded Amount",
+          "position": {
+            "x": 52968,
+            "y": 8653,
+            "w": 23871,
+            "h": 10555,
+            "x_px": 821.0,
+            "y_px": 138.4,
+            "w_px": 370.0,
+            "h_px": 168.9
+          }
+        },
+        {
+          "id": "6",
+          "worksheet": "Avg Interest Rate",
+          "position": {
+            "x": 27294,
+            "y": 8653,
+            "w": 25674,
+            "h": 10555,
+            "x_px": 423.1,
+            "y_px": 138.4,
+            "w_px": 397.9,
+            "h_px": 168.9
+          }
+        },
+        {
+          "id": "12",
+          "worksheet": "Loan Status by Grade",
+          "position": {
+            "x": 516,
+            "y": 19208,
+            "w": 48616,
+            "h": 34476,
+            "x_px": 8.0,
+            "y_px": 307.3,
+            "w_px": 753.5,
+            "h_px": 551.6
+          }
+        },
+        {
+          "id": "39",
+          "worksheet": "Loan Amount by Purpose",
+          "position": {
+            "x": 49132,
+            "y": 19208,
+            "w": 50352,
+            "h": 34476,
+            "x_px": 761.5,
+            "y_px": 307.3,
+            "w_px": 780.5,
+            "h_px": 551.6
+          }
+        },
+        {
+          "id": "43",
+          "worksheet": "Loans Issued Year Over Year",
+          "position": {
+            "x": 53744,
+            "y": 53684,
+            "w": 45740,
+            "h": 24819,
+            "x_px": 833.0,
+            "y_px": 858.9,
+            "w_px": 709.0,
+            "h_px": 397.1
+          }
+        },
+        {
+          "id": "49",
+          "worksheet": "Loan Term Split",
+          "position": {
+            "x": 53731,
+            "y": 78503,
+            "w": 45753,
+            "h": 20997,
+            "x_px": 832.8,
+            "y_px": 1256.0,
+            "w_px": 709.2,
+            "h_px": 336.0
+          }
+        },
+        {
+          "id": "53",
+          "worksheet": "Top 10 States by Total Loan Volume",
+          "position": {
+            "x": 516,
+            "y": 53684,
+            "w": 53228,
+            "h": 24819,
+            "x_px": 8.0,
+            "y_px": 858.9,
+            "w_px": 825.0,
+            "h_px": 397.1
+          }
+        },
+        {
+          "id": "57",
+          "worksheet": "Default Rate by Grade",
+          "position": {
+            "x": 516,
+            "y": 78503,
+            "w": 53215,
+            "h": 20997,
+            "x_px": 8.0,
+            "y_px": 1256.0,
+            "w_px": 824.8,
+            "h_px": 336.0
+          }
+        },
+        {
+          "id": "63",
+          "worksheet": "Default Rate",
+          "position": {
+            "x": 76839,
+            "y": 8653,
+            "w": 22645,
+            "h": 10555,
+            "x_px": 1191.0,
+            "y_px": 138.4,
+            "w_px": 351.0,
+            "h_px": 168.9
+          }
+        },
+        {
+          "id": "44",
+          "worksheet": "Loans Issued Year Over Year",
+          "position": {
+            "x": 89200,
+            "y": 54438,
+            "w": 9333,
+            "h": 4000,
+            "x_px": 1382.6,
+            "y_px": 871.0,
+            "w_px": 144.7,
+            "h_px": 64.0
+          }
+        },
+        {
+          "id": "50",
+          "worksheet": "Loan Term Split",
+          "position": {
+            "x": 89067,
+            "y": 83250,
+            "w": 9333,
+            "h": 4000,
+            "x_px": 1380.5,
+            "y_px": 1332.0,
+            "w_px": 144.7,
+            "h_px": 64.0
+          }
+        },
+        {
+          "id": "40",
+          "worksheet": "Loan Amount by Purpose",
+          "position": {
+            "x": 86452,
+            "y": 20000,
+            "w": 12194,
+            "h": 4188,
+            "x_px": 1340.0,
+            "y_px": 320.0,
+            "w_px": 189.0,
+            "h_px": 67.0
+          }
+        },
+        {
+          "id": "60",
+          "worksheet": "Default Rate by Grade",
+          "position": {
+            "x": 44200,
+            "y": 78875,
+            "w": 9333,
+            "h": 5500,
+            "x_px": 685.1,
+            "y_px": 1262.0,
+            "w_px": 144.7,
+            "h_px": 88.0
+          }
+        }
+      ],
+      "filters": [
+        {
+          "id": "36",
+          "worksheet": "Avg Interest Rate",
+          "param": "[federated.18e8p121a6tl721befxy016u4rxt].[none:grade:nk]",
+          "field": "grade",
+          "mode": "checkdropdown",
+          "position": {
+            "x": 516,
+            "y": 3125,
+            "w": 26778,
+            "h": 5528,
+            "x_px": 8.0,
+            "y_px": 50.0,
+            "w_px": 415.1,
+            "h_px": 88.4
+          }
+        },
+        {
+          "id": "34",
+          "worksheet": "Avg Interest Rate",
+          "param": "[federated.18e8p121a6tl721befxy016u4rxt].[none:loan_status:nk]",
+          "field": "loan_status",
+          "mode": "checkdropdown",
+          "position": {
+            "x": 27294,
+            "y": 3125,
+            "w": 26425,
+            "h": 5528,
+            "x_px": 423.1,
+            "y_px": 50.0,
+            "w_px": 409.6,
+            "h_px": 88.4
+          }
+        },
+        {
+          "id": "38",
+          "worksheet": "Avg Interest Rate",
+          "param": "[federated.18e8p121a6tl721befxy016u4rxt].[none:purpose:nk]",
+          "field": "purpose",
+          "mode": "checkdropdown",
+          "position": {
+            "x": 53719,
+            "y": 3125,
+            "w": 25286,
+            "h": 5528,
+            "x_px": 832.6,
+            "y_px": 50.0,
+            "w_px": 391.9,
+            "h_px": 88.4
+          }
+        },
+        {
+          "id": "35",
+          "worksheet": "Avg Interest Rate",
+          "param": "[federated.18e8p121a6tl721befxy016u4rxt].[none:issue_year:ok]",
+          "field": "issue_year",
+          "mode": "checkdropdown",
+          "position": {
+            "x": 79005,
+            "y": 3125,
+            "w": 20479,
+            "h": 5528,
+            "x_px": 1224.6,
+            "y_px": 50.0,
+            "w_px": 317.4,
+            "h_px": 88.4
+          }
+        }
+      ],
+      "parameter_controls": [],
+      "images": [],
+      "text_zones": [],
+      "buttons": []
+    }
+  ],
+  "windows": [
+    {
+      "class": "worksheet",
+      "name": "Default Rate by Grade",
+      "uuid": "{1CDA5415-A78C-4E8F-A8B1-1667EAFA765A}"
+    },
+    {
+      "class": "worksheet",
+      "name": "Loan Status by Grade",
+      "uuid": "{2228BE1F-6AF2-4809-89F5-E1F94E41188A}"
+    },
+    {
+      "class": "worksheet",
+      "name": "Loan Amount by Purpose",
+      "uuid": "{2C7571A8-3774-4223-9CEC-D2D12DDB75F8}"
+    },
+    {
+      "class": "dashboard",
+      "name": "Loan Portfolio Overview & Risk Analysis ",
+      "uuid": "{4AF69367-69D0-4E8C-A32F-70E6BC3821DF}"
+    },
+    {
+      "class": "worksheet",
+      "name": "Total Funded Amount",
+      "uuid": "{507E0DC7-99A8-4A98-97FB-CE56285A905C}"
+    },
+    {
+      "class": "worksheet",
+      "name": "Avg Interest Rate",
+      "uuid": "{61460F98-A21F-4942-80A5-9586C25B60B8}"
+    },
+    {
+      "class": "worksheet",
+      "name": "Default Rate",
+      "uuid": "{943763EB-9A03-43B4-B45A-287DCF4C227F}"
+    },
+    {
+      "class": "worksheet",
+      "name": "Top 10 States by Total Loan Volume",
+      "uuid": "{9D16055C-573F-4D09-8FF8-79B85B336E37}"
+    },
+    {
+      "class": "worksheet",
+      "name": "Filters",
+      "uuid": "{A7A21B24-C0CC-468D-B551-9A66F29A26FE}"
+    },
+    {
+      "class": "worksheet",
+      "name": "Total Loans",
+      "uuid": "{DB9438EB-02D5-4FC6-A505-E3D7E127DFB3}"
+    },
+    {
+      "class": "worksheet",
+      "name": "Loans Issued Year Over Year",
+      "uuid": "{E61F8E86-931F-4B6A-B71C-82171528962F}"
+    },
+    {
+      "class": "worksheet",
+      "name": "Loan Term Split",
+      "uuid": "{E9E25635-AA26-4295-9E80-EFE69F672EAB}"
+    }
+  ],
+  "relationships": [
+    {
+      "datasource": "customer",
+      "left_table": "loan.csv",
+      "left_column": "customer_id",
+      "right_table": "customer.csv",
+      "right_column": "customer_id",
+      "join_type": "relationship",
+      "operator": "="
+    },
+    {
+      "datasource": "customer",
+      "left_table": "loan.csv",
+      "left_column": "purpose",
+      "right_table": "loan_purposes.csv",
+      "right_column": "purpose",
+      "join_type": "relationship",
+      "operator": "="
+    },
+    {
+      "datasource": "customer",
+      "left_table": "loan.csv",
+      "left_column": "state",
+      "right_table": "state_region.csv",
+      "right_column": "state",
+      "join_type": "relationship",
+      "operator": "="
+    }
+  ],
+  "sets": [],
+  "groups": [],
+  "bins": [],
+  "data_blending": {
+    "is_blended": true,
+    "primary": "loan",
+    "secondary": [
+      "loan_count_by_year",
+      "loan_purposes",
+      "loan_with_region",
+      "state_region",
+      "customer"
+    ],
+    "linking_fields": [],
+    "note": "6 datasources present — verify cross-source field usage"
+  },
+  "field_formatting": [],
+  "row_level_security": {
+    "detected": false,
+    "type": "None",
+    "signals": [],
+    "user_functions": [],
+    "mapping_table": null,
+    "user_column": null,
+    "entitlement_column": null,
+    "secured_table": null,
+    "roles": []
+  },
+  "summary": {
+    "datasource_count": 6,
+    "worksheet_count": 11,
+    "dashboard_count": 1,
+    "parameter_count": 1,
+    "calculated_field_count": 10,
+    "dimension_count": 46,
+    "measure_count": 14,
+    "set_count": 0,
+    "group_count": 0,
+    "bin_count": 0,
+    "connection_types": [
+      "CSV"
+    ],
+    "rls_detected": false
+  },
+  "warnings": []
+}
